@@ -26,7 +26,8 @@ public class SearchResultSet {
     private final long elapsedTime;
     private final List<StoredDocument> docs;
     private final List<String> ids = new ArrayList<>();
-
+    //only used in scrolling
+    private String scrollId;
 
     public SearchResultSet(long totalHits, long queryTime, long elapsedTime,
                            List<StoredDocument> docs) {
@@ -75,5 +76,13 @@ public class SearchResultSet {
 
     public String getId(int i) {
         return ids.get(i);
+    }
+
+    public void setScrollId(String scrollId) {
+        this.scrollId = scrollId;
+    }
+
+    public String getScrollId() {
+        return scrollId;
     }
 }

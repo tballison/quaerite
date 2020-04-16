@@ -112,8 +112,9 @@ public class ESClient extends SearchClient {
         return getResultSet(root, start);
     }
 
-    public String startScroll(QueryRequest query, int size, int minutesAlive)
+    public SearchResultSet startScroll(QueryRequest query, int size, int minutesAlive)
             throws SearchClientException, IOException {
+        long start = System.currentTimeMillis();
         Map<String, Object> queryMap = getQueryMap(query, Collections.EMPTY_LIST);
         if (query.getSortField() != null) {
             Map<String, String> sort = new HashMap<>();
@@ -129,7 +130,11 @@ public class ESClient extends SearchClient {
             throw new SearchClientException(json.getMsg() + "\nfor " + jsonQuery);
         }
         JsonElement root = json.getJson();
-        return root.getAsJsonObject().get("_scroll_id").getAsString();
+        String scrollId = root.getAsJsonObject().get("_scroll_id").getAsString();
+
+        SearchResultSet resultSet = getResultSet(root, start);
+        resultSet.setScrollId(scrollId);
+        return resultSet;
     }
 
     public SearchResultSet scrollNext(String scrollId, int minutesAlive)
