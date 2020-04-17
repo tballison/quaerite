@@ -144,7 +144,10 @@ public class ESClient extends SearchClient {
         request.put("scroll", minutesAlive + "m");
         request.put("scroll_id", scrollId);
         String jsonQuery = GSON.toJson(request);
-        JsonResponse json = postJson(url + "_search/scroll", jsonQuery);
+        //the scroll id is tied to a specific collection
+        //so you need to use the esBase, not the "url" that
+        //includes the collection
+        JsonResponse json = postJson(esBase + "_search/scroll", jsonQuery);
         if (json.getStatus() != 200) {
             throw new SearchClientException(json.getMsg() + "\nfor " + jsonQuery);
         }
