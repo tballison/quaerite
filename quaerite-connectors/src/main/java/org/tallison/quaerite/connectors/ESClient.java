@@ -28,6 +28,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -59,6 +61,8 @@ public class ESClient extends SearchClient {
     private static final String _DOC = "_doc";
     private static final Gson GSON = new Gson();
 
+    private static final Pattern ES_URL_PATTERN =
+            Pattern.compile("(https?://[^/]+/)(?:([^/]*)/?)?\\Z");
     private static Set<String> SYS_INTERNAL_FIELDS;
 
     static {
@@ -81,19 +85,19 @@ public class ESClient extends SearchClient {
 
     public ESClient(String url, String user, String password) {
         super(user, password);
-        String tmp = url;
+        String tmp = url.trim();
         if (!url.endsWith("/")) {
             tmp = tmp + "/";
         }
         this.url = tmp;
-        String base = tmp.substring(0, tmp.length() - 1);
-        int indexOf = base.lastIndexOf("/");
-        if (indexOf < 0) {
-            throw new IllegalArgumentException("can't find / before collection name; " +
+        Matcher m = ES_URL_PATTERN.matcher(tmp);
+        if (! m.find()) {
+            throw new IllegalArgumentException("can't find / before collection name: " +
+                    tmp + "; " +
                     "should be, e.g.: http://localhost:9200/my_collection");
         }
-        this.esBase = base.substring(0, indexOf + 1);
-        this.esCollection = base.substring(indexOf + 1);
+        this.esBase = m.group(1);
+        this.esCollection = m.group(2);
     }
 
     @Override
