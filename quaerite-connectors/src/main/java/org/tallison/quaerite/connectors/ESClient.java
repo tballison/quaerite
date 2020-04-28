@@ -369,7 +369,8 @@ public class ESClient extends SearchClient {
     }
 
     @Override
-    public void addDocuments(List<StoredDocument> documents) throws IOException, SearchClientException {
+    public void addDocuments(List<StoredDocument> documents) throws IOException,
+            SearchClientException {
         StringBuilder sb = new StringBuilder();
         for (StoredDocument sd : documents) {
             Map<String, Object> fields = sd.getFields();
@@ -381,6 +382,13 @@ public class ESClient extends SearchClient {
         JsonResponse response = postJson(url + "/_bulk", sb.toString());
         if (response.getStatus() != 200) {
             throw new SearchClientException(response.getMsg());
+        } else {
+            //if there's a single error, throw the full json.
+            //this has not been thoroughly tested with versions of es < 7
+            String value = response.getJson().getAsJsonObject().get("errors").getAsString();
+            if (value.equals("true")) {
+                throw new SearchClientException(response.getJson().toString());
+            }
         }
     }
 
