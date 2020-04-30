@@ -52,7 +52,7 @@ public class TestSolrClient {
 
     @Test
     public void testCopyFields() throws Exception {
-        SolrClient client = new SolrClient(TMDB_URL);
+        SolrClient client = (SolrClient)SearchClientFactory.getClient(TMDB_URL);
         Set<String> copyFieldDests = client.getCopyFields();
         assertTrue(copyFieldDests.contains("tsss_directors"));
         assertTrue(copyFieldDests.contains("tsss_cast"));
@@ -62,7 +62,7 @@ public class TestSolrClient {
 
     @Test
     public void testFacets() throws Exception {
-        SolrClient client = new SolrClient(TMDB_URL);
+        SolrClient client = (SolrClient)SearchClientFactory.getClient(TMDB_URL);
         QueryRequest queryRequest = new QueryRequest(ALL_DOCS);
         queryRequest.setFacetField("genres_facet");
         queryRequest.setFacetLimit(20000);

@@ -70,7 +70,9 @@ public class TestESClient {
 
     @Test
     public void testInit() throws Exception {
-        ESClient client = new ESClient("http://localhost:9200/tmdb");
+        ESClient client =
+                (ESClient)SearchClientFactory
+                        .getClient("http://localhost:9200/tmdb");
         assertEquals("http://localhost:9200/", client.getESBase());
         assertEquals("http://localhost:9200/tmdb/", client.getUrl());
         assertEquals("tmdb", client.getESCollection());
@@ -78,7 +80,8 @@ public class TestESClient {
 
     @Test
     public void testCopyFields() throws Exception {
-        ESClient client = new ESClient("http://localhost:9200/tmdb");
+        ESClient client = (ESClient) SearchClientFactory.getClient(
+                "http://localhost:9200/tmdb");
         Collection copyFields = client.getCopyFields();
         Set<String> set = new HashSet<>(copyFields);
         assertTrue(set.contains("people"));
