@@ -99,6 +99,7 @@ See the ```quaerite-examples``` module and its [README](https://github.com/mitre
 Releases
 --------------
 * [1.0.0-ALPHA](https://github.com/mitre/quaerite/releases) March 22, 2019
+* [1.0.0-ALPHA2](https://github.com/mitre/quaerite/releases) April 30, 2020
 
 
 Road Map
@@ -108,7 +109,7 @@ High priorities
 * See the issues on [the issue tracker](https://github.com/mitre/quaerite/issues)
 
 Planned Releases
-* 1.0.0-beta1 May, 2019
+* 1.0.0-beta1 July, 2020
 
 Related Open Source Projects
 ---------------------
@@ -119,11 +120,6 @@ Related Open Source Projects
 
 License (see also LICENSE.txt)
 ------------------------------
-
-Copyright (c) 2019, The MITRE Corporation. All rights reserved.
-
-Approved for Public Release; Distribution Unlimited. Case Number 18-3138-7.
-
 
 Licensed to the Apache Software Foundation (ASF) under one or more contributor license agreements.  See the NOTICE file distributed with this work for additional information regarding copyright ownership.  The ASF licenses this file to You under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.  You may obtain a copy of the License at
 
