@@ -109,6 +109,7 @@
                 <configuration>
                     <excludes>
                         <exclude>example_files/**</exclude>
+                        <exclude>example_files_advanced/**</exclude>
                     </excludes>
                 </configuration>
             </plugin>
