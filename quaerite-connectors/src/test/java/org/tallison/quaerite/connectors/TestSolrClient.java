@@ -142,7 +142,7 @@ public class TestSolrClient {
         StoredDocument doc1359 = null;
         for (int i = 0; i < docs.size(); i++) {
             StoredDocument sd = docs.get(i);
-            if (sd.getFields().get("id").equals("1359")) {
+            if (sd.getId().equals("1359")) {
                 doc1359 = sd;
                 break;
             }
@@ -169,8 +169,8 @@ public class TestSolrClient {
         StoredDocument doc1359 = null;
         for (int i = 0; i < docs.size(); i++) {
             StoredDocument sd = docs.get(i);
-            assertEquals(2, sd.getFields().size());
-            if (sd.getFields().get("id").equals("1359")) {
+            assertEquals(1, sd.getFields().size());
+            if (sd.getId().equals("1359")) {
                 doc1359 = sd;
             }
         }

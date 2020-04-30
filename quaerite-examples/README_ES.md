@@ -38,7 +38,7 @@ Prerequisites
    
 3. Download and unpack ES 7.0.1 from [here](https://www.elastic.co/downloads/elasticsearch).
 
-4. Start ES:  ```./bin/solr start -f -s /path/to/solr/tmdb```
+4. Start ES:  ```./bin/elasticsearch start```
 
 5a. Curl the template: `curl -H "Content-Type: application/json" -T tmdb_template.json http://localhost:9200/_template/tmdb`
 5b. If using ES >= 7, `curl -H "Content-Type: application/json" -T max_buckets.json http://localhost:9200/_cluster/settings`

@@ -23,7 +23,7 @@ import org.junit.jupiter.api.Test;
         "and need to set JSON_PATH to the location of the tmdb.json file")
 public class TestIndexTMDB {
 
-    private static final String JSON_PATH = "C:/data/tmdb.json";
+    private static final String JSON_PATH = "/data/tmdb.json";
     private static final String SOLR = "http://localhost:8983/solr/tmdb";
     private static final String ES = "http://localhost:9200/tmdb";
 

@@ -45,7 +45,7 @@ Prerequisites
 
 6. Download _tmdb.json_ from
    [OpenSourceConnections via AWS](http://o19s-public-datasets.s3.amazonaws.com/tmdb.json).
-
+   (shasum 256: 0d86dbd5ee1b4329fb55803433a2bfa7e651d6d7e1c5baeb26c00f299aca370f)
 7. Ingest the _tmdb_ data ```java -jar quaerite-examples-1.0.0-SNAPSHOT.jar tmdb.json http://localhost:8983/solr/tmdb```
 
 8. Navigate to [here](http://localhost:8983/solr/#/tmdb) to confirm that _tmdb_ was loaded into Solr.

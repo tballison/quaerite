@@ -571,32 +571,25 @@ public class ESClient extends SearchClient {
                         wrapAMap("match_all", Collections.EMPTY_MAP));
                 q.put("size", Integer.toString(batchSize));
                 q.put("stored_fields", Collections.EMPTY_LIST);
-                JsonResponse response = null;
-                response = postJson(url + "_search?scroll=5m", GSON.toJson(q));
-                JsonObject root = (JsonObject) response.getJson();
-                String scrollId = JsonUtil.getPrimitive(root, "_scroll_id", "");
-                SearchResultSet searchResultSet = getResultSet(root, System.currentTimeMillis());
 
-                Map<String, String> nextScroll = new HashMap<>();
-                nextScroll.put("scroll", "5m");
-                nextScroll.put("scroll_id", scrollId);
+                Query query = new MatchAllDocsQuery();
+                QueryRequest queryRequest = new QueryRequest(query);
+                queryRequest.addFieldsToRetrieve(Collections.EMPTY_LIST);
 
+                SearchResultSet searchResultSet = startScroll(queryRequest, batchSize, 5);
+                String scrollId = searchResultSet.getScrollId();
                 while (searchResultSet.size() > 0) {
                     Set<String> set = new HashSet<>();
                     set.addAll(searchResultSet.getIds());
                     LOG.debug("adding " + set.size());
                     addSet(ids, set);
-                    String u = esBase + "_search/scroll";
-                    response = postJson(u, GSON.toJson(nextScroll));
-                    root = (JsonObject) response.getJson();
-                    searchResultSet = getResultSet(root, System.currentTimeMillis());
+                    searchResultSet = scrollNext(scrollId, 5);
                 }
             } finally {
                 LOG.debug("id grabber adding poison");
                 addPoison();
             }
             return -1;
-
         }
 
     }

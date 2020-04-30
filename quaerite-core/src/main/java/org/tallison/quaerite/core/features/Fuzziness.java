@@ -21,16 +21,22 @@ import java.util.Set;
 
 public class Fuzziness extends StringFeature {
 
-    public static final String DEFAULT_FUZZINESS = "AUTO";
     private static final String NAME = "fuzziness";
-    private static final Set<String> VALID = new HashSet<>();
+    public static final String DEFAULT_FUZZINESS = "0";
 
+    private static final Set<String> VALID = new HashSet<>();
     static {
         VALID.add("0");
         VALID.add("1");
         VALID.add("2");
         VALID.add("AUTO");
     }
+
+    public static final Fuzziness ZERO = new Fuzziness("0");
+    public static final Fuzziness ONE = new Fuzziness("1");
+    public static final Fuzziness TWO = new Fuzziness("2");
+    public static final Fuzziness AUTO = new Fuzziness("AUTO");
+
     public Fuzziness() {
         super(NAME, DEFAULT_FUZZINESS);
     }
