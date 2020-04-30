@@ -20,16 +20,13 @@ import java.util.List;
 import java.util.Map;
 
 import com.google.gson.JsonObject;
+import org.apache.http.client.HttpClient;
 import org.tallison.quaerite.core.util.JsonUtil;
 
 public class ES6Client extends ESClient {
 
-    public ES6Client(String url) {
-        super(url);
-    }
-
-    public ES6Client(String url, String user, String password) {
-        super(url, user, password);
+    public ES6Client(String url, HttpClient httpClient) {
+        super(url, httpClient);
     }
 
     protected long getTotalHits(JsonObject hits) {

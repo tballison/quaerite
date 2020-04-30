@@ -23,8 +23,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
@@ -35,18 +33,12 @@ import java.util.concurrent.ArrayBlockingQueue;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpHost;
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.CredentialsProvider;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ByteArrayEntity;
-import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 import org.tallison.quaerite.core.ExperimentConfig;
@@ -58,70 +50,25 @@ import org.tallison.quaerite.core.stats.TokenDF;
 
 public abstract class SearchClient implements Closeable {
 
-    public abstract SearchResultSet search(QueryRequest query) throws SearchClientException, IOException;
+    public abstract SearchResultSet search(QueryRequest query)
+            throws SearchClientException, IOException;
 
-    public abstract FacetResult facet(QueryRequest query) throws SearchClientException, IOException;
+    public abstract FacetResult facet(QueryRequest query)
+            throws SearchClientException, IOException;
 
     static Logger LOG = Logger.getLogger(SearchClient.class);
 
-    private final CloseableHttpClient httpClient;
+    private final HttpClient httpClient;
     private final JsonParser parser = new JsonParser();
 
-    public SearchClient() {
-        httpClient = HttpClients.createDefault();
-    }
-    public SearchClient(String user, String password) {
-        if (user != null && password != null) {
-            CredentialsProvider provider = new BasicCredentialsProvider();
-            UsernamePasswordCredentials credentials
-                    = new UsernamePasswordCredentials(user, password);
-            provider.setCredentials(AuthScope.ANY, credentials);
-            httpClient = HttpClientBuilder.create()
-                    .setDefaultCredentialsProvider(provider)
-                    .build();
-        } else {
-            httpClient = HttpClients.createDefault();
-        }
+    public SearchClient(HttpClient httpClient) {
+        this.httpClient = httpClient;
     }
 
-    protected byte[] get(String url) throws SearchClientException {
-        //overly simplistic...need to add proxy, etc., but good enough for now
-        URI uri = null;
-        try {
-            uri = new URI(url);
-        } catch (URISyntaxException e) {
-            throw new IllegalArgumentException(e);
-        }
-        HttpHost target = new HttpHost(uri.getHost(), uri.getPort());
-        HttpGet httpGet = null;
-        try {
-            String get = uri.getPath();
-            if (!StringUtils.isBlank(uri.getQuery())) {
-                get += "?" + uri.getRawQuery();
-            }
-            httpGet = new HttpGet(get);
-        } catch (Exception e) {
-            throw new IllegalArgumentException(url, e);
-        }
-        //this is required because of connection already bound exceptions
-        //on windows. :(
-        //httpGet.setHeader("Connection", "close");
 
-        //try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
-        try (CloseableHttpResponse httpResponse = httpClient.execute(target, httpGet)) {
-            if (httpResponse.getStatusLine().getStatusCode() != 200) {
-                String msg = new String(EntityUtils.toByteArray(
-                        httpResponse.getEntity()), StandardCharsets.UTF_8);
-                throw new SearchClientException("Bad status code: "
-                        + httpResponse.getStatusLine().getStatusCode()
-                        + "for url: " + url + "; msg: " + msg);
-            }
-            return EntityUtils.toByteArray(httpResponse.getEntity());
-        } catch (IOException e) {
-            throw new SearchClientException(url, e);
-        }
+    protected byte[] getUrl(String url) throws SearchClientException {
+        return HttpUtils.get(httpClient, url);
     }
-
     protected JsonResponse postJson(String url, String json) throws IOException {
         HttpPost httpRequest = new HttpPost(url);
         ByteArrayEntity entity = new ByteArrayEntity(json.getBytes(StandardCharsets.UTF_8));
@@ -133,7 +80,9 @@ public abstract class SearchClient implements Closeable {
 
         //try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
 
-        try (CloseableHttpResponse response = httpClient.execute(httpRequest)) {
+        HttpResponse response = null;
+        try {
+            response = httpClient.execute(httpRequest);
             int status = response.getStatusLine().getStatusCode();
             if (status == 200) {
                 try (Reader reader = new BufferedReader(
@@ -151,6 +100,9 @@ public abstract class SearchClient implements Closeable {
                                 StandardCharsets.UTF_8));
             }
         } finally {
+            if (response != null && response instanceof CloseableHttpResponse) {
+                ((CloseableHttpResponse)response).close();
+            }
             httpRequest.releaseConnection();
         }
     }
@@ -165,7 +117,9 @@ public abstract class SearchClient implements Closeable {
     }
 
     public void close() throws IOException {
-        httpClient.close();
+        if (httpClient instanceof  CloseableHttpClient) {
+            ((CloseableHttpClient)httpClient).close();
+        }
     }
 
     public abstract void addDocuments(List<StoredDocument> buildDocuments)
@@ -207,7 +161,7 @@ public abstract class SearchClient implements Closeable {
             SearchClientException {
         byte[] bytes;
         try {
-            bytes = get(url);
+            bytes = getUrl(url);
         } catch (SearchClientException e) {
             return new JsonResponse(-1, e.getMessage());
         }

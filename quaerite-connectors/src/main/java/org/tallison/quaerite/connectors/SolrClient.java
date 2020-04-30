@@ -42,6 +42,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.client.HttpClient;
 import org.apache.log4j.Logger;
 import org.tallison.quaerite.core.FacetResult;
 import org.tallison.quaerite.core.SearchResultSet;
@@ -85,7 +86,8 @@ public class SolrClient extends SearchClient {
     /**
      * @param url url to Solr including /collection
      */
-    protected SolrClient(String url) throws IOException, SearchClientException {
+    protected SolrClient(String url, HttpClient httpClient) throws IOException, SearchClientException {
+        super(httpClient);
         this.url = url;
     }
 
@@ -312,7 +314,7 @@ public class SolrClient extends SearchClient {
     @Override
     public FacetResult facet(QueryRequest query) throws SearchClientException, IOException {
         String url = generateRequestURL(query);
-        byte[] bytes = get(url);
+        byte[] bytes = getUrl(url);
         JsonParser parser = new JsonParser();
         JsonElement root = null;
         try (Reader reader = new BufferedReader(

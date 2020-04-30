@@ -25,6 +25,7 @@ import java.util.Set;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import org.apache.http.client.HttpClient;
 import org.apache.log4j.Logger;
 import org.tallison.quaerite.core.StoredDocument;
 import org.tallison.quaerite.core.queries.LuceneQuery;
@@ -41,8 +42,9 @@ public class Solr4Client extends SolrClient {
     /**
      * @param url url to Solr including /collection
      */
-    protected Solr4Client(String url, int minorVersion) throws IOException, SearchClientException {
-        super(url);
+    protected Solr4Client(String url, HttpClient httpClient,
+                          int minorVersion) throws IOException, SearchClientException {
+        super(url, httpClient);
         this.minorVersion = minorVersion;
     }
 

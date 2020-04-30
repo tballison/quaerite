@@ -16,17 +16,15 @@
  */
 package org.tallison.quaerite.connectors;
 
+import org.apache.http.client.HttpClient;
 import org.tallison.quaerite.core.queries.BooleanClause;
 
 //TODO: figure out when FILTER became available!
 public class ES4Client extends ES6Client {
 
-    public ES4Client(String url) {
-        super(url);
-    }
 
-    public ES4Client(String url, String user, String password) {
-        super(url, user, password);
+    public ES4Client(String url, HttpClient httpClient) {
+        super(url, httpClient);
     }
 
     @Override

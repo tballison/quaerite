@@ -37,6 +37,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.client.HttpClient;
 import org.apache.log4j.Logger;
 import org.tallison.quaerite.core.FacetResult;
 import org.tallison.quaerite.core.SearchResultSet;
@@ -79,12 +80,9 @@ public class ESClient extends SearchClient {
     private final String esCollection;//has no /
 
 
-    public ESClient(String url) {
-        this(url, null, null);
-    }
+    public ESClient(String url, HttpClient httpClient) {
+        super(httpClient);
 
-    public ESClient(String url, String user, String password) {
-        super(user, password);
         String tmp = url.trim();
         if (!url.endsWith("/")) {
             tmp = tmp + "/";
