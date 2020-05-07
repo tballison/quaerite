@@ -26,6 +26,8 @@ import java.security.NoSuchAlgorithmException;
 import javax.net.ssl.SSLContext;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HeaderElement;
+import org.apache.http.HeaderElementIterator;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.auth.AuthScope;
@@ -36,6 +38,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
+import org.apache.http.conn.ConnectionKeepAliveStrategy;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
@@ -45,6 +48,9 @@ import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
+import org.apache.http.message.BasicHeaderElementIterator;
+import org.apache.http.protocol.HTTP;
+import org.apache.http.protocol.HttpContext;
 import org.apache.http.ssl.SSLContexts;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
@@ -113,16 +119,18 @@ public class HttpUtils {
             try {
                 return httpClientTrustingAllSSLCerts2(username, password);
             } catch (NoSuchAlgorithmException | KeyManagementException | KeyStoreException e) {
-                e.printStackTrace();
                 throw new SearchClientException(e);
             }
         } else if (username != null && password != null) {
             CredentialsProvider provider = getProvider(username, password);
             return HttpClientBuilder.create()
+                    .setKeepAliveStrategy(getDefaultKeepAliveStrategy())
                     .setDefaultCredentialsProvider(provider)
                     .build();
         } else {
-            return HttpClients.createDefault();
+            return HttpClientBuilder.create()
+                    .setKeepAliveStrategy(getDefaultKeepAliveStrategy())
+                    .build();
         }
     }
 
@@ -153,12 +161,16 @@ public class HttpUtils {
         BasicHttpClientConnectionManager connectionManager =
                 new BasicHttpClientConnectionManager(socketFactoryRegistry);
         if (provider == null) {
-            return HttpClients.custom().setSSLSocketFactory(sslsf)
+            return HttpClients.custom()
+                    .setKeepAliveStrategy(getDefaultKeepAliveStrategy())
+                    .setSSLSocketFactory(sslsf)
                     .setConnectionManager(connectionManager)
                     .setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE).build();
 
         } else {
-            return HttpClients.custom().setSSLSocketFactory(sslsf)
+            return HttpClients.custom()
+                    .setKeepAliveStrategy(getDefaultKeepAliveStrategy())
+                    .setSSLSocketFactory(sslsf)
                     .setConnectionManager(connectionManager)
                     .setDefaultCredentialsProvider(provider)
                     .setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE).build();
@@ -186,6 +198,33 @@ public class HttpUtils {
             return provider;
         }
         return null;
+    }
+
+    //if no keep-alive header is found or a bad value is present,
+    // keep alive for only 5 seconds!
+    private static ConnectionKeepAliveStrategy getDefaultKeepAliveStrategy() {
+        return new ConnectionKeepAliveStrategy() {
+
+            public long getKeepAliveDuration(HttpResponse response, HttpContext context) {
+                // Honor 'keep-alive' header
+                HeaderElementIterator it = new BasicHeaderElementIterator(
+                        response.headerIterator(HTTP.CONN_KEEP_ALIVE));
+                while (it.hasNext()) {
+                    HeaderElement he = it.nextElement();
+                    String param = he.getName();
+                    String value = he.getValue();
+                    if (value != null && param != null &&
+                            param.equalsIgnoreCase("timeout")) {
+                        try {
+                            return Long.parseLong(value) * 1000;
+                        } catch (NumberFormatException ignore) {
+                        }
+                    }
+                }
+                return 5 * 1000;
+            }
+
+        };
     }
 
 }
