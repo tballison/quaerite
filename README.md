@@ -94,19 +94,19 @@ For ES, specifically, parameters include: `boost`, `fuzziness` and `multi_match_
 
 Getting Started
 ---------------
-See the ```quaerite-examples``` module and its [README](https://github.com/mitre/quaerite/blob/master/quaerite-examples/README.md).
+See the ```quaerite-examples``` module and its [README](https://github.com/tballison/quaerite/blob/master/quaerite-examples/README.md).
 
 Releases
 --------------
-* [1.0.0-ALPHA](https://github.com/mitre/quaerite/releases) March 22, 2019
-* [1.0.0-ALPHA2](https://github.com/mitre/quaerite/releases) April 30, 2020
+* [1.0.0-ALPHA](https://github.com/tballison/quaerite/releases) March 22, 2019
+* [1.0.0-ALPHA2](https://github.com/tballison/quaerite/releases) April 30, 2020
 
 
 Road Map
 ----------
 High priorities
 * Add other features (e.g. ```bq```, ```bf```) as needed
-* See the issues on [the issue tracker](https://github.com/mitre/quaerite/issues)
+* See the issues on [the issue tracker](https://github.com/tballison/quaerite/issues)
 
 Planned Releases
 * 1.0.0-beta1 July, 2020
