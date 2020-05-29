@@ -45,8 +45,8 @@ class QueryLoader {
 
     private static final String QUERY_SET = "querySet";
     private static final String QUERY_ID = "queryId";
-    private static final String DOCUMENT_ID = "id";
-    private static final String RELEVANCE = "relevance";
+    private static final String DOCUMENT_ID = "docid";
+    private static final String RELEVANCE = "rating";
     private static final String COUNT = "count";
 
     static Logger LOG = Logger.getLogger(AbstractCLI.class);

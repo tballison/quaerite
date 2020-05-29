@@ -548,7 +548,7 @@ public class SolrClient extends SearchClient {
         if (includeTf) {
             for (int i = 0; i < fieldArr.size(); i += 2) {
                 String term = fieldArr.get(i).getAsString();
-                JsonObject obj = fieldArr.get(i+1).getAsJsonObject();
+                JsonObject obj = fieldArr.get(i + 1).getAsJsonObject();
                 long df = obj.get("df").getAsLong();
                 long tf = obj.get("ttf").getAsLong();
                 termDFList.add(new TokenDFTF(term, df, tf));

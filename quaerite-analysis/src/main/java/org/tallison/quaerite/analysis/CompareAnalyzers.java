@@ -17,7 +17,6 @@
 package org.tallison.quaerite.analysis;
 
 import static org.tallison.quaerite.core.util.CommandLineUtil.getInt;
-import static org.tallison.quaerite.core.util.CommandLineUtil.getLong;
 
 import java.io.IOException;
 import java.io.InputStream;
