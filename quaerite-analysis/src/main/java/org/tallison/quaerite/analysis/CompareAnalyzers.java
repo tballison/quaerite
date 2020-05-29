@@ -66,7 +66,7 @@ public class CompareAnalyzers {
     static Logger LOG = Logger.getLogger(SearchClient.class);
     private static int DEFAULT_NUM_THREADS = 10;
     private static int DEFAULT_MIN_SET_SIZE = 1;
-    private static long DEFAULT_MIN_DF = 0;
+    private static int DEFAULT_MIN_DF = 1;
 
     static {
         OPTIONS.addOption(
@@ -115,7 +115,15 @@ public class CompareAnalyzers {
                         .longOpt("minDocumentFrequency")
                         .hasArg()
                         .required(false)
-                        .desc("minimum document frequency (default = 0)").build()
+                        .desc("minimum document frequency for each base token (default = 0)").build()
+        );
+
+        OPTIONS.addOption(
+                Option.builder("u")
+                        .longOpt("unicodeCodePoints")
+                        .hasArg(false)
+                        .required(false)
+                        .desc("if we should print unicode code points in the output").build()
         );
     }
 
@@ -138,7 +146,8 @@ public class CompareAnalyzers {
 
         CompareAnalyzers compareAnalyzers = new CompareAnalyzers();
         int minSetSize = getInt(commandLine, "minSetSize", DEFAULT_MIN_SET_SIZE);
-        long minDF = getLong(commandLine, "minDF", DEFAULT_MIN_DF);
+        int minDF = getInt(commandLine, "minDF", DEFAULT_MIN_DF);
+        boolean includeUnicode = (commandLine.hasOption("u")) ? true : false;
         compareAnalyzers.setNumThreads(
                 getInt(commandLine, "n", DEFAULT_NUM_THREADS));
 
@@ -163,50 +172,83 @@ public class CompareAnalyzers {
         Map<String, EquivalenceSet> map = compareAnalyzers.compare(
                 client,
                 baseField,
-                filteredField);
+                filteredField, minDF);
 
         for (Map.Entry<String, EquivalenceSet> e : map.entrySet()) {
             if (e.getValue().getMap().size() > minSetSize) {
-                boolean printed = false;
+                if (includeUnicode) {
+                    System.out.println(e.getKey() + " (" +
+                            getUnicodeCodePoints(e.getKey()) + ")");
+                } else {
+                    System.out.println(e.getKey());
+
+                }
                 for (Map.Entry<String, MutableLong> orig : e.getValue().getSortedMap().entrySet()) {
                     if (orig.getValue().longValue() < minDF) {
                         continue;
                     }
-                    if (!printed) {
-                        System.out.println(e.getKey());
-                        printed = true;
+                    if (includeUnicode) {
+                        System.out.println("\t" + orig.getKey() + ": " +
+                                orig.getValue() + " (" +
+                                getUnicodeCodePoints(orig.getKey()) + ")");
+                    } else {
+                        System.out.println("\t" + orig.getKey() + ": " + orig.getValue());
                     }
-                    System.out.println("\t" + orig.getKey() + ": " + orig.getValue());
                 }
             }
         }
-        System.out.println("\n\nQUERY...\n\n\n");
+        if (queryTokenPairs.size() > 0) {
+            System.out.println("\n\nQUERY...\n\n\n");
 
-        int maxEquivalences = 10;
-        for (QueryTokenPair q : queryTokenPairs) {
-            System.out.println(q.query);
-            for (String token : q.getTokens()) {
-                EquivalenceSet e = map.get(token);
-                if (e == null) {
-                    System.out.println("\t" + token);
-                } else {
-                    boolean printed = false;
-                    int equivs = 0;
-                    for (Map.Entry<String, MutableLong> orig : e.getSortedMap().entrySet()) {
-                        if (!printed) {
-                            System.out.println("\t" + token);
-                            printed = true;
-                        }
-                        System.out.println("\t\t" + orig.getKey() + ": " + orig.getValue());
-                        if (equivs++ >= maxEquivalences) {
-                            System.out.println("\t\t...");
-                            break;
+            int maxEquivalences = 10;
+            for (QueryTokenPair q : queryTokenPairs) {
+                System.out.println(q.query);
+                for (String token : q.getTokens()) {
+                    EquivalenceSet e = map.get(token);
+                    if (e == null) {
+                        System.out.println("\t" + token);
+                    } else {
+                        boolean printed = false;
+                        int equivs = 0;
+                        for (Map.Entry<String, MutableLong> orig : e.getSortedMap().entrySet()) {
+                            if (!printed) {
+                                if (includeUnicode) {
+                                    System.out.println("\t" + token +
+                                            " (" + getUnicodeCodePoints(token) + ")");
+                                } else {
+                                    System.out.println("\t" + token);
+                                }
+                                printed = true;
+                            }
+                            if (includeUnicode) {
+                                System.out.println("\t\t" + orig.getKey() + ": " +
+                                        orig.getValue() + " (" +
+                                        getUnicodeCodePoints(orig.getKey() + ")"));
+                            } else {
+                                System.out.println("\t\t" + orig.getKey() + ": " + orig.getValue());
+                            }
+                            if (equivs++ >= maxEquivalences) {
+                                System.out.println("\t\t...");
+                                break;
+                            }
                         }
                     }
                 }
             }
             System.out.println("\n");
         }
+    }
+
+    private static String getUnicodeCodePoints(String s) {
+        StringBuilder sb = new StringBuilder();
+        int i = 0;
+        for (int c : s.codePoints().toArray()) {
+            if (i++ > 0) {
+                sb.append(" | ");
+            }
+            sb.append(StringUtils.leftPad(Integer.toHexString(c), 4, "0"));
+        }
+        return sb.toString();
     }
 
     private static List<QueryTokenPair> loadQueries(Path path,
@@ -254,7 +296,7 @@ public class CompareAnalyzers {
 
     public Map<String, EquivalenceSet> compare(SearchClient client,
                                                String baseField,
-                                               String filteredField) {
+                                               String filteredField, int minDF) {
 
         ArrayBlockingQueue<Set<TokenDF>> queue = new ArrayBlockingQueue<>(100);
         List<ReAnalyzer> reAnalyzers = new ArrayList<>();
@@ -265,7 +307,7 @@ public class CompareAnalyzers {
         ExecutorService executorService = Executors.newFixedThreadPool(numThreads + 1);
         ExecutorCompletionService<Integer> completionService =
                 new ExecutorCompletionService<>(executorService);
-        completionService.submit(new TermGetter(queue, numThreads, client, baseField));
+        completionService.submit(new TermGetter(queue, numThreads, client, baseField, minDF));
         for (int i = 0; i < numThreads; i++) {
             completionService.submit(reAnalyzers.get(i));
         }
@@ -318,30 +360,34 @@ public class CompareAnalyzers {
 
     private static class TermGetter implements Callable<Integer> {
 
-        private final int termSetSize = 100;
-        private final int minDF = 0;
+        private final int termSetSize = 1000;
+        private int minDF;
         private final ArrayBlockingQueue<Set<TokenDF>> queue;
         private final int numThreads;
         private final SearchClient client;
         private final String field;
 
         public TermGetter(ArrayBlockingQueue<Set<TokenDF>> queue, int numThreads,
-                          SearchClient client, String field) {
+                          SearchClient client, String field, int minDF) {
             this.queue = queue;
             this.numThreads = numThreads;
             this.client = client;
             this.field = field;
+            this.minDF = minDF;
         }
 
         @Override
         public Integer call() throws Exception {
             String lower = "";
-
+            long gotten = 0;
             while (true) {
-                List<TokenDF> terms = client.getTerms(field, lower, termSetSize, minDF);
+                List<TokenDF> terms = client.getTerms(field, lower,
+                        termSetSize, minDF, false);
+                gotten += terms.size();
                 if (terms.size() == 0) {
                     break;
                 }
+                LOG.debug("added " + gotten);
                 Set<TokenDF> tdf = new HashSet<>(terms);
                 boolean added = queue.offer(tdf, 1, TimeUnit.SECONDS);
                 while (added == false) {

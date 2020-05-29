@@ -60,6 +60,7 @@ import org.tallison.quaerite.core.queries.Query;
 import org.tallison.quaerite.core.queries.TermQuery;
 import org.tallison.quaerite.core.queries.TermsQuery;
 import org.tallison.quaerite.core.stats.TokenDF;
+import org.tallison.quaerite.core.stats.TokenDFTF;
 
 /**
  * This should work with versions >= Solr 7.x
@@ -516,11 +517,15 @@ public class SolrClient extends SearchClient {
 
     @Override
     public List<TokenDF> getTerms(String field, String lower,
-                                  int limit, int minCount) throws IOException, SearchClientException {
+                                  int limit, int minCount,
+                                  boolean includeTf) throws IOException, SearchClientException {
         StringBuilder request = new StringBuilder();
         request.append(url).append("/terms?terms=true");
         request.append("&terms.fl=").append(encode(field));
         request.append("&terms.limit=" + limit);
+        if (includeTf) {
+            request.append("&terms.ttf=true");
+        }
         if (!StringUtils.isBlank(lower)) {
             request.append("&terms.lower=").append(encode(lower));
         }
@@ -540,11 +545,21 @@ public class SolrClient extends SearchClient {
 
         JsonArray fieldArr = termObj.getAsJsonArray(field);
 
-        for (int i = 0; i < fieldArr.size(); i += 2) {
-            termDFList.add(new TokenDF(
-                    fieldArr.get(i).getAsString(),
-                    fieldArr.get(i + 1).getAsLong()
-            ));
+        if (includeTf) {
+            for (int i = 0; i < fieldArr.size(); i += 2) {
+                String term = fieldArr.get(i).getAsString();
+                JsonObject obj = fieldArr.get(i+1).getAsJsonObject();
+                long df = obj.get("df").getAsLong();
+                long tf = obj.get("ttf").getAsLong();
+                termDFList.add(new TokenDFTF(term, df, tf));
+            }
+        } else {
+            for (int i = 0; i < fieldArr.size(); i += 2) {
+                termDFList.add(new TokenDF(
+                        fieldArr.get(i).getAsString(),
+                        fieldArr.get(i + 1).getAsLong()
+                ));
+            }
         }
 
         return termDFList;

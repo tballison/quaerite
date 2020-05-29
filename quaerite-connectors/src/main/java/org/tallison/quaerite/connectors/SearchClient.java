@@ -184,6 +184,6 @@ public abstract class SearchClient implements Closeable {
             throws IOException, SearchClientException;
 
     public abstract List<TokenDF> getTerms(String field, String lower,
-                                           int limit, int minCount)
+                                           int limit, int minCount, boolean includeTf)
             throws IOException, SearchClientException;
 }

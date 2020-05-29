@@ -185,7 +185,7 @@ public class TestSolrClient {
         Set<TokenDF> allTerms = new HashSet<>();
         while (true) {
             List<TokenDF> terms = client.getTerms("production_companies_facet",
-                    lower, 100, 0);
+                    lower, 100, 0, false);
             if (terms.size() == 0) {
                 break;
             }
@@ -206,7 +206,7 @@ public class TestSolrClient {
         lower = "";
         while (true) {
             List<TokenDF> terms = client.getTerms("production_companies_facet_lc",
-                    lower, 100, 0);
+                    lower, 100, 0, false);
             if (terms.size() == 0) {
                 break;
             }

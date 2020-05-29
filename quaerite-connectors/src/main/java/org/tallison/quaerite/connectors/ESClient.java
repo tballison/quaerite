@@ -546,9 +546,10 @@ public class ESClient extends SearchClient {
 
     @Override
     public List<TokenDF> getTerms(String field, String lower,
-                                  int limit, int minCount) throws IOException, SearchClientException {
-        //todo stub
-        return Collections.EMPTY_LIST;
+                                  int limit, int minCount,
+                                  boolean includeTf) throws IOException, SearchClientException {
+        throw new UnsupportedOperationException("not yet supported for ES");
+//        return Collections.EMPTY_LIST;
     }
 
     protected String getESBase() {
