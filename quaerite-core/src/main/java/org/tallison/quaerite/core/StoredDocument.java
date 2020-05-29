@@ -26,10 +26,18 @@ import org.apache.commons.lang3.StringUtils;
 public class StoredDocument {
     Map<String, Object> fields = new LinkedHashMap<>();
     private final String id;
+    private String index;
     public StoredDocument(String id) {
         this.id = id;
     }
 
+    public void setIndex(String index) {
+        this.index = index;
+    }
+
+    public String getIndex() {
+        return index;
+    }
     public String getId() {
         return id;
     }

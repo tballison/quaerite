@@ -427,6 +427,8 @@ public class ESClient extends SearchClient {
         for (JsonElement el : docs) {
             String id = JsonUtil.getPrimitive(el, getDefaultIdField(), "");
             StoredDocument document = new StoredDocument(id);
+            String index = JsonUtil.getPrimitive(el, "_index", "");
+            document.setIndex(index);
             JsonObject src = (JsonObject) ((JsonObject) el).get("_source");
             for (String k : src.keySet()) {
                 if (!blackListFields.contains(k)) {
@@ -520,9 +522,26 @@ public class ESClient extends SearchClient {
     }
 
     @Override
-    public List<String> analyze(String field, String string) {
-        //todo stub
-        return Collections.EMPTY_LIST;
+    public List<String> analyze(String field, String string) throws SearchClientException {
+        Map<String, String> m = new HashMap<>();
+        m.put("field", field);
+        m.put("text", string);
+        JsonResponse response = null;
+        try {
+            response = postJson(url + "_analyze", GSON.toJson(m));
+        } catch (IOException e) {
+            throw new SearchClientException(e);
+        }
+        if (response.getStatus() != 200) {
+            throw new SearchClientException(response.getMsg());
+        }
+        List<String> tokens = new ArrayList<>();
+        JsonObject root = response.getJson().getAsJsonObject();
+        for (JsonElement tokenObj : root.get("tokens").getAsJsonArray()) {
+            String t = tokenObj.getAsJsonObject().get("token").getAsString();
+            tokens.add(t);
+        }
+        return tokens;
     }
 
     @Override
