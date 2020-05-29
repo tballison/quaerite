@@ -520,7 +520,7 @@ public class SolrClient extends SearchClient {
         StringBuilder request = new StringBuilder();
         request.append(url).append("/terms?terms=true");
         request.append("&terms.fl=").append(encode(field));
-        request.append("&limit=" + limit);
+        request.append("&terms.limit=" + limit);
         if (!StringUtils.isBlank(lower)) {
             request.append("&terms.lower=").append(encode(lower));
         }
