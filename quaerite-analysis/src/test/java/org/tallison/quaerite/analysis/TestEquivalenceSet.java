@@ -59,6 +59,4 @@ public class TestEquivalenceSet {
         }
         assertEquals(20, first);
     }
-
-
 }

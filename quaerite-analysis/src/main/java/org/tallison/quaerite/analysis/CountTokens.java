@@ -51,11 +51,24 @@ public class CountTokens {
         int minDF = 0;
         long uniqueTerms = 0;
         long totalTermCount = 0;
+        long alphabeticUnique = 0;
+        long alphabeticTotal = 0;
         while (true) {
             List<TokenDF> terms = client.getTerms(field, lower, termSetSize, minDF, true);
             for (TokenDF tdf : terms) {
+                boolean hasAlphabetic = false;
+                for (int cp : tdf.getToken().codePoints().toArray()) {
+                    if (Character.isAlphabetic(cp)) {
+                        hasAlphabetic = true;
+                        break;
+                    }
+                }
                 totalTermCount += ((TokenDFTF) tdf).getTf();
                 uniqueTerms++;
+                if (hasAlphabetic) {
+                    alphabeticTotal += ((TokenDFTF)tdf).getTf();
+                    alphabeticUnique++;
+                }
             }
             if (terms.size() == 0) {
                 break;
@@ -64,5 +77,7 @@ public class CountTokens {
         }
         System.out.println("unique terms: "+uniqueTerms);
         System.out.println("total tokens: "+ totalTermCount);
+        System.out.println("unique alphabetic terms: "+alphabeticUnique);
+        System.out.println("total alphabetic tokens: "+ alphabeticTotal);
     }
 }
