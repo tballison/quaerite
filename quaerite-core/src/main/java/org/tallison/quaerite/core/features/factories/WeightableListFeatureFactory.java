@@ -112,7 +112,7 @@ public class WeightableListFeatureFactory<T extends WeightableListFeature>
 
     @Override
     public T random() {
-        T ret = (T)newInstance(getName());
+        T ret = (T) newInstance(getName());
         if (maxSetSize > -1) {
             List<WeightableField> tmp = new ArrayList<>();
             tmp.addAll(features.getWeightableFields());
@@ -169,7 +169,7 @@ public class WeightableListFeatureFactory<T extends WeightableListFeature>
             base.addAll(currFeatures.getWeightableFields());
         }
 
-        if (features.get(i).hasWeight()) {
+        if (features.get(i).hasWeight() || defaultWeights.size() == 0) {
             base.add(features.get(i));
             if (base.size() >= minSetSize) {
                 collector.add((T) base);
@@ -179,7 +179,7 @@ public class WeightableListFeatureFactory<T extends WeightableListFeature>
             int newDepth = depth + 1;
             for (Float f : defaultWeights) {
                 if (f > 0.0f) {
-                    T tmp = (T)newInstance(getName());
+                    T tmp = (T) newInstance(getName());
                     tmp.addAll(base.getWeightableFields());
                     tmp.add(
                             new WeightableField(features.get(i).getFeature(), f));
@@ -191,6 +191,7 @@ public class WeightableListFeatureFactory<T extends WeightableListFeature>
                     recurse(i + 1, depth, maxSize, base, collector);
                 }
             }
+
         }
     }
 
@@ -198,7 +199,7 @@ public class WeightableListFeatureFactory<T extends WeightableListFeature>
         Constructor constructor = null;
         try {
             constructor = clazz.getConstructor();
-            return (T)constructor.newInstance();
+            return (T) constructor.newInstance();
         } catch (Exception e) {
             throw new RuntimeException();
         }
@@ -298,7 +299,7 @@ public class WeightableListFeatureFactory<T extends WeightableListFeature>
         WeightableField existing = mutated.remove(index);
 
         float weight = MathUtil.calcMutatedWeight(existing.getWeight(), min, max, amplitude);
-        if (! MathUtil.equals(weight, 0.0f, 0.01f)) {
+        if (!MathUtil.equals(weight, 0.0f, 0.01f)) {
             WeightableField mutatedFeature =
                     new WeightableField(existing.getFeature(), weight);
             mutated.add(mutatedFeature);
@@ -321,7 +322,7 @@ public class WeightableListFeatureFactory<T extends WeightableListFeature>
             return;
         }
         String newFeatureName = newFeatures.get(MathUtil.RANDOM.nextInt(newFeatures.size()));
-        float mid = (float)((double)min / (double)max);
+        float mid = (float) ((double) min / (double) max);
         mutated.add(
                 new WeightableField(newFeatureName,
                         MathUtil.calcMutatedWeight(mid, min, max, amplitude)));

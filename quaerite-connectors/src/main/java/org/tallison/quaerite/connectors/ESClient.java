@@ -49,6 +49,7 @@ import org.tallison.quaerite.core.queries.BooleanQuery;
 import org.tallison.quaerite.core.queries.BoostingQuery;
 import org.tallison.quaerite.core.queries.LuceneQuery;
 import org.tallison.quaerite.core.queries.MatchAllDocsQuery;
+import org.tallison.quaerite.core.queries.MoreLikeThisQuery;
 import org.tallison.quaerite.core.queries.MultiMatchQuery;
 import org.tallison.quaerite.core.queries.Query;
 import org.tallison.quaerite.core.queries.SingleStringQuery;
@@ -101,7 +102,7 @@ public class ESClient extends SearchClient {
     @Override
     public SearchResultSet search(QueryRequest query) throws SearchClientException, IOException {
         long start = System.currentTimeMillis();
-        String jsonQuery = buildJsonQuery(query, Collections.EMPTY_LIST);
+        String jsonQuery = buildJsonQuery(query, query.getFieldsToRetrieve());
         if (LOG.isTraceEnabled()) {
             LOG.trace(jsonQuery);
         }
@@ -179,7 +180,8 @@ public class ESClient extends SearchClient {
         return val;
     }
 
-    private String buildJsonQuery(QueryRequest query, List<String> fieldsToRetrieve) {
+    private String buildJsonQuery(QueryRequest query, List<String> fieldsToRetrieve)
+            throws IOException, SearchClientException {
         Map<String, Object> queryMap = getQueryMap(query, fieldsToRetrieve);
         if (query.getSortField() != null) {
             Map<String, String> sort = new HashMap<>();
@@ -190,7 +192,8 @@ public class ESClient extends SearchClient {
         return json;
     }
 
-    protected Map<String, Object> getQueryMap(QueryRequest queryRequest, List<String> fieldsToRetrieve) {
+    protected Map<String, Object> getQueryMap(QueryRequest queryRequest, List<String> fieldsToRetrieve)
+            throws IOException, SearchClientException {
         Query fullQuery = queryRequest.getQuery();
         Query q = queryRequest.getQuery();
         if (queryRequest.getFilterQueries().size() > 0) {
@@ -218,7 +221,8 @@ public class ESClient extends SearchClient {
     BooleanClause.OCCUR getFilterOccur() {
         return BooleanClause.OCCUR.FILTER;
     }
-    private Map<String, Object> buildQuery(Query query) {
+
+    private Map<String, Object> buildQuery(Query query) throws IOException, SearchClientException {
         Map<String, Object> queryMap = new HashMap<>();
         if (query instanceof MultiMatchQuery) {
             queryMap = getMultiMatchMap((MultiMatchQuery) query);
@@ -247,6 +251,8 @@ public class ESClient extends SearchClient {
             return getBooleanMap((BooleanQuery) query);
         } else if (query instanceof BoostingQuery) {
             return getBoostingMap((BoostingQuery) query);
+        } else if (query instanceof MoreLikeThisQuery) {
+            return getMoreLikeThisMap((MoreLikeThisQuery)query);
         } else {
             throw new IllegalArgumentException(
                     "I regret I don't yet know how to handle queries of type: "
@@ -255,7 +261,39 @@ public class ESClient extends SearchClient {
         return queryMap;
     }
 
-    private Map<String, Object> getBoostingMap(BoostingQuery query) {
+    private Map<String, Object> getMoreLikeThisMap(MoreLikeThisQuery query)
+            throws IOException, SearchClientException {
+        Map<String, Object> queryMap = new HashMap<>();
+        List<String> fields = new ArrayList<>();
+        for (WeightableField field : query.getQF().getWeightableFields()) {
+            fields.add(field.getFeature());
+        }
+        queryMap.put("fields", fields);
+        List<Object> likes = new ArrayList<>();
+        String idField = getDefaultIdField();
+        for (MoreLikeThisQuery.IndexIdPair p : query.getIndexIdPairs()) {
+            Map<String, String> map = new HashMap<>();
+            map.put("_index", p.getIndex());
+            map.put(idField, p.getId());
+            likes.add(map);
+        }
+        for (String text : query.getTexts()) {
+            likes.add(text);
+        }
+        queryMap.put("like", likes);
+        queryMap.put("min_term_freq", query.getMinTermFreq().getValue());
+        queryMap.put("max_query_terms", query.getMaxQueryTerms().getValue());
+        queryMap.put("min_doc_freq", query.getMinTermFreq().getValue());
+        if (query.getMaxDocFreq().getValue() < Integer.MAX_VALUE - 2) {
+            queryMap.put("max_doc_freq", query.getMaxDocFreq().getValue());
+        }
+        queryMap.put("min_word_length", query.getMinWordLength().getValue());
+        queryMap.put("max_word_length", query.getMaxWordLength().getValue());
+        return wrapAMap("more_like_this", queryMap);
+    }
+
+    private Map<String, Object> getBoostingMap(BoostingQuery query)
+            throws IOException, SearchClientException {
         //short circuit if there is no negative boost query
         if ((query.getNegativeQuery() instanceof SingleStringQuery)) {
             String qS = ((SingleStringQuery) query.getNegativeQuery()).getQueryString();
@@ -271,7 +309,7 @@ public class ESClient extends SearchClient {
         return wrapAMap("boosting", queryMap);
     }
 
-    private Map<String, Object> getBooleanMap(BooleanQuery bq) {
+    private Map<String, Object> getBooleanMap(BooleanQuery bq) throws IOException, SearchClientException {
         Map<String, Object> queryMap = new LinkedHashMap<>();
         for (BooleanClause.OCCUR occur : BooleanClause.OCCUR.values()) {
             List<Map<String, Object>> clauses = new ArrayList<>();
@@ -344,7 +382,7 @@ public class ESClient extends SearchClient {
         return new FacetResult(totalDocs, counts);
     }
 
-    private String buildFacetRequest(QueryRequest query) {
+    private String buildFacetRequest(QueryRequest query) throws IOException, SearchClientException {
         Map<String, Object> aggsMap =
                 wrapAMap("aggregations",
                         wrapAMap(query.getFacetField(),

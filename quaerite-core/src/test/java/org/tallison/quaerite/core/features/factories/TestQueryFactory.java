@@ -42,6 +42,7 @@ import org.tallison.quaerite.core.features.NegativeBoost;
 import org.tallison.quaerite.core.features.QueryOperator;
 import org.tallison.quaerite.core.queries.BoostingQuery;
 import org.tallison.quaerite.core.queries.EDisMaxQuery;
+import org.tallison.quaerite.core.queries.MoreLikeThisQuery;
 import org.tallison.quaerite.core.queries.MultiMatchQuery;
 import org.tallison.quaerite.core.queries.Query;
 import org.tallison.quaerite.core.serializers.QuerySerializer;
@@ -574,6 +575,45 @@ public class TestQueryFactory {
 
     }
 
+    @Test
+    public void testMoreLikeThisInES() throws Exception {
+        ExperimentFactory experimentFactory = ExperimentFactory.fromJson(
+                newReader("/test-documents/experiment_features_es_mlt.json")
+        );
+        QueryFactory<MoreLikeThisQuery> qf = (QueryFactory<MoreLikeThisQuery>) experimentFactory
+                .getFeatureFactories().get(QueryFactory.NAME);
+
+        List<MoreLikeThisQuery> queries = qf.permute(1000);
+        assertEquals(1000, queries.size());
+        QuerySerializer querySerializer = new QuerySerializer();
+        for (MoreLikeThisQuery q : queries) {
+            JsonElement el = querySerializer.serialize(q, null, null);
+            Query deserialized = querySerializer.deserialize(el, null, null);
+            assertEquals(q, deserialized);
+        }
+
+        for (int i = 0; i < 100; i++) {
+            MoreLikeThisQuery q1 = qf.random();
+            MoreLikeThisQuery q2 = qf.random();
+            Pair<MoreLikeThisQuery, MoreLikeThisQuery> pair = qf.crossover(q1, q2);
+            JsonElement el = querySerializer.serialize(pair.getLeft(), null, null);
+            Query deserialized = querySerializer.deserialize(el, null, null);
+            assertEquals(pair.getLeft(), deserialized);
+
+            el = querySerializer.serialize(pair.getRight(), null, null);
+            deserialized = querySerializer.deserialize(el, null, null);
+            assertEquals(pair.getRight(), deserialized);
+        }
+
+        for (int i = 0; i < 100; i++) {
+            MoreLikeThisQuery q = qf.random();
+            MoreLikeThisQuery mutated = qf.mutate(q, 0.8, 1.0);
+            JsonElement el = querySerializer.serialize(mutated, null, null);
+            Query deserialized = querySerializer.deserialize(el, null, null);
+            assertEquals(mutated, deserialized);
+        }
+
+    }
     private Reader newReader(String path) {
         return new BufferedReader(
                 new InputStreamReader(
