@@ -1,0 +1,101 @@
+{
+  "scorers": [
+    {
+      "class": "AtLeastOneAtN",
+      "atN": 1
+    },
+    {
+      "class": "AtLeastOneAtN",
+      "atN": 3
+    },
+    {
+      "class": "AtLeastOneAtN",
+      "atN": 5
+    },
+    {
+      "class": "AtLeastOneAtN",
+      "atN": 10
+    },
+    {
+      "class": "AtLeastOneAtN",
+      "atN": 30
+    },
+    {
+      "class": "NDCG",
+      "atN": 10,
+      "params": {
+        "useForTrain": true,
+        "useForTest": true,
+        "exportPMatrix": true
+      }
+    },
+    {
+      "class": "TotalDocsReturned"
+    },
+    {
+      "class": "TotalElapsedTime"
+    }
+  ],
+  "experiments": {
+    "best_fields": {
+      "searchServerUrl": "http://localhost:9200/tmdb",
+      "query": {
+        "multi_match": {
+          "type": "best_fields",
+          "qf": [
+            "cast",
+            "producers",
+            "people",
+            "title",
+            "overview"
+          ]
+        }
+      }
+    },
+    "cross_fields": {
+      "searchServerUrl": "http://localhost:9200/tmdb",
+      "query": {
+        "multi_match": {
+          "type": "cross_fields",
+          "qf": [
+            "cast",
+            "producers",
+            "people",
+            "title",
+            "overview"
+          ]
+        }
+      }
+    },
+    "most_fields": {
+      "searchServerUrl": "http://localhost:9200/tmdb",
+      "query": {
+        "multi_match": {
+          "type": "most_fields",
+          "qf": [
+            "cast",
+            "producers",
+            "people",
+            "title",
+            "overview"
+          ]
+        }
+      }
+    },
+    "phrase": {
+      "searchServerUrl": "http://localhost:9200/tmdb",
+      "query": {
+        "multi_match": {
+          "type": "phrase",
+          "qf": [
+            "cast",
+            "producers",
+            "people",
+            "title",
+            "overview"
+          ]
+        }
+      }
+    }
+  }
+}

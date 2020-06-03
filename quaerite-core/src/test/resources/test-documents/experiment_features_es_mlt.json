@@ -1,0 +1,86 @@
+{
+  "gaConfig": {
+    "numThreads": 6,
+    "population": 20,
+    "generations": 5,
+    "crossoverProbability": 0.2,
+    "mutationProbability": 0.7,
+    "mutationAmplitude": 0.1,
+    "reproductionProbability": 0.1,
+    "nFolds": 3
+  },
+  "scorers": [
+    {
+      "class": "NDCG",
+      "atN": 10,
+      "params": {
+        "useForTrain": true,
+        "useForTest": true,
+        "exportPMatrix": true
+      }
+    }
+  ],
+  "featureFactories": {
+    "urls": [
+      "http://localhost:9200/tmdb"
+    ],
+    "query": {
+      "more_like_this": {
+        "qf": {
+          "fields": [
+            "title",
+            "overview",
+            "people",
+            "all_text"
+          ],
+          "minSetSize": 1,
+          "maxSetSize": 4
+        },
+        "maxQueryTerms": [
+          1,
+          2,
+          3,
+          4,
+          10,
+          30,
+          50
+        ],
+        "minTermFreq": [
+          0,
+          1,
+          2,
+          5,
+          10,
+          100
+        ],
+        "minDocFreq": [
+          0,
+          1,
+          2,
+          5,
+          10,
+          100
+        ],
+        "maxDocFreq": [
+          -1,
+          100000,
+          2147483647
+        ],
+        "minWordLength": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "maxWordLength": [
+          10,
+          20,
+          50,
+          100,
+          1000
+        ]
+      }
+    }
+  }
+}

@@ -14,31 +14,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.tallison.quaerite.connectors;
+package org.tallison.quaerite.core.features;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
+public class MaxQueryTerms extends IntFeature {
+    private final static String NAME = "maxQueryTerms";
 
-import com.google.gson.JsonObject;
-import org.apache.http.client.HttpClient;
-import org.tallison.quaerite.core.util.JsonUtil;
-
-public class ES6Client extends ESClient {
-
-    public ES6Client(String url, HttpClient httpClient) {
-        super(url, httpClient);
-    }
-
-    protected long getTotalHits(JsonObject hits) {
-        return JsonUtil.getPrimitive(hits, "total", -1l);
+    public MaxQueryTerms(int value) {
+        super(NAME, value);
     }
 
     @Override
-    protected Map<String, Object> getQueryMap(QueryRequest queryRequest, List<String> fieldsToRetrieve)
-            throws IOException, SearchClientException {
-        Map<String, Object> map = super.getQueryMap(queryRequest, fieldsToRetrieve);
-        map.remove("track_total_hits");
-        return map;
+    public MaxQueryTerms deepCopy() {
+        return new MaxQueryTerms(getValue());
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof MaxQueryTerms)) return false;
+        return super.equals(o);
+    }
+
+    @Override
+    public int hashCode() {
+        return super.hashCode();
     }
 }

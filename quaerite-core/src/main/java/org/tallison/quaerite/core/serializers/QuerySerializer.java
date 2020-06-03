@@ -49,6 +49,12 @@ import org.tallison.quaerite.core.features.Feature;
 import org.tallison.quaerite.core.features.FloatFeature;
 import org.tallison.quaerite.core.features.Fuzziness;
 import org.tallison.quaerite.core.features.IntFeature;
+import org.tallison.quaerite.core.features.MaxDocFreq;
+import org.tallison.quaerite.core.features.MaxQueryTerms;
+import org.tallison.quaerite.core.features.MaxWordLength;
+import org.tallison.quaerite.core.features.MinDocFreq;
+import org.tallison.quaerite.core.features.MinTermFreq;
+import org.tallison.quaerite.core.features.MinWordLength;
 import org.tallison.quaerite.core.features.MultiMatchType;
 import org.tallison.quaerite.core.features.NegativeBoost;
 import org.tallison.quaerite.core.features.PF;
@@ -72,6 +78,7 @@ import org.tallison.quaerite.core.queries.BoostingQuery;
 import org.tallison.quaerite.core.queries.DisMaxQuery;
 import org.tallison.quaerite.core.queries.EDisMaxQuery;
 import org.tallison.quaerite.core.queries.LuceneQuery;
+import org.tallison.quaerite.core.queries.MoreLikeThisQuery;
 import org.tallison.quaerite.core.queries.MultiFieldQuery;
 import org.tallison.quaerite.core.queries.MultiMatchQuery;
 import org.tallison.quaerite.core.queries.Query;
@@ -104,6 +111,7 @@ public class QuerySerializer extends AbstractFeatureSerializer
     private static final String BOOL = "bool";
     private static final String BOOLEAN = "boolean";
     private static final String BOOSTING = "boosting";
+    private static final String MORE_LIKE_THIS = "more_like_this";
 
     @Override
     public Query deserialize(JsonElement jsonElement, Type type,
@@ -148,11 +156,43 @@ public class QuerySerializer extends AbstractFeatureSerializer
             return buildBoolean(jsonObj);
         } else if (queryType.equals(BOOSTING)) {
             return buildBoosting(jsonObj);
+        } else if (queryType.equals(MORE_LIKE_THIS)) {
+            return buildMoreLikeThis(jsonObj);
         } else {
             throw new IllegalArgumentException(
                     "I regret I don't yet support: " + queryType);
         }
 
+    }
+
+    private Query buildMoreLikeThis(JsonObject obj) {
+        MoreLikeThisQuery mlt = new MoreLikeThisQuery();
+        deserializeMultiField(mlt, obj);
+        if (obj.has("maxQueryTerms")) {
+            mlt.setMaxQueryTerms(new MaxQueryTerms(
+                    obj.getAsJsonPrimitive("maxQueryTerms").getAsInt()));
+        }
+        if (obj.has("minTermFreq")) {
+            mlt.setMinTermFreq(new MinTermFreq(
+                    obj.getAsJsonPrimitive("minTermFreq").getAsInt()));
+        }
+        if (obj.has("minDocFreq")) {
+            mlt.setMinDocFreq(new MinDocFreq(
+                    obj.getAsJsonPrimitive("minDocFreq").getAsInt()));
+        }
+        if (obj.has("maxDocFreq")) {
+            mlt.setMaxDocFreq(new MaxDocFreq(
+                    obj.getAsJsonPrimitive("maxDocFreq").getAsInt()));
+        }
+        if (obj.has("minWordLength")) {
+            mlt.setMinWordLength(new MinWordLength(
+                    obj.getAsJsonPrimitive("minWordLength").getAsInt()));
+        }
+        if (obj.has("maxWordLength")) {
+            mlt.setMaxWordLength(new MaxWordLength(
+                    obj.getAsJsonPrimitive("maxWordLength").getAsInt()));
+        }
+        return mlt;
     }
 
     private static Query updateQueryWithStringName(Query query, JsonObject obj) {
@@ -569,11 +609,25 @@ public class QuerySerializer extends AbstractFeatureSerializer
             jsonObject.add(BOOL, serializeBoolean((BooleanQuery) query));
         } else if (query instanceof BoostingQuery) {
             jsonObject.add(BOOSTING, serializeBoosting((BoostingQuery) query));
+        } else if (query instanceof MoreLikeThisQuery) {
+            jsonObject.add(MORE_LIKE_THIS, serializeMoreLikeThisQuery((MoreLikeThisQuery)query));
         } else {
             throw new IllegalArgumentException(
                     "I'm sorry, I don't yet support: " + query.getClass());
         }
         return jsonObject;
+    }
+
+    private JsonElement serializeMoreLikeThisQuery(MoreLikeThisQuery query) {
+        JsonObject ret = new JsonObject();
+        serializeMultiFieldComponents(query, ret);
+        ret.add("maxQueryTerms", new JsonPrimitive(query.getMaxQueryTerms().getValue()));
+        ret.add("minTermFreq", new JsonPrimitive(query.getMinTermFreq().getValue()));
+        ret.add("minDocFreq", new JsonPrimitive(query.getMinDocFreq().getValue()));
+        ret.add("maxDocFreq", new JsonPrimitive(query.getMaxDocFreq().getValue()));
+        ret.add("minWordLength", new JsonPrimitive(query.getMinWordLength().getValue()));
+        ret.add("maxWordLength", new JsonPrimitive(query.getMaxWordLength().getValue()));
+        return ret;
     }
 
     private JsonElement serializeBoosting(BoostingQuery query) {
