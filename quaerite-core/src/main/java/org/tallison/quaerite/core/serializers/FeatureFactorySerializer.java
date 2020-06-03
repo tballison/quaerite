@@ -49,6 +49,7 @@ import org.tallison.quaerite.core.features.ParameterizableStringListFeature;
 import org.tallison.quaerite.core.features.QueryOperator;
 import org.tallison.quaerite.core.features.StringFeature;
 import org.tallison.quaerite.core.features.StringListFeature;
+import org.tallison.quaerite.core.features.WeightableField;
 import org.tallison.quaerite.core.features.WeightableListFeature;
 import org.tallison.quaerite.core.features.factories.BoostingQueryFactory;
 import org.tallison.quaerite.core.features.factories.CustomHandlerFactory;
@@ -65,6 +66,7 @@ import org.tallison.quaerite.core.features.factories.StringListFeatureFactory;
 import org.tallison.quaerite.core.features.factories.WeightableListFeatureFactory;
 import org.tallison.quaerite.core.queries.DisMaxQuery;
 import org.tallison.quaerite.core.queries.EDisMaxQuery;
+import org.tallison.quaerite.core.queries.MoreLikeThisQuery;
 import org.tallison.quaerite.core.queries.MultiFieldQuery;
 import org.tallison.quaerite.core.queries.MultiMatchQuery;
 import org.tallison.quaerite.core.queries.Query;
@@ -152,10 +154,25 @@ public class FeatureFactorySerializer extends AbstractFeatureSerializer
             return buildMultiMatchFactory(childRoot);
         } else if (name.equals("boosting")) {
             return buildBoostingFactory(childRoot);
+        } else if (name.equals("more_like_this")) {
+            return buildMoreLikeThisFactory(childRoot);
         } else {
             //TODO: add boolean query
             throw new IllegalArgumentException("I regret I don't yet support: " + name);
         }
+    }
+
+    private QueryFactory buildMoreLikeThisFactory(JsonObject root) {
+        QueryFactory<MoreLikeThisQuery> factory = new QueryFactory<>(
+                "more_like_this", MoreLikeThisQuery.class);
+        factory.add(buildWeightableFeatureFactory("qf", root.get("qf").getAsJsonObject()));
+        factory.add(buildIntFeatureFactory("maxQueryTerms", root.get("maxQueryTerms").getAsJsonArray()));
+        factory.add(buildIntFeatureFactory("minTermFreq", root.get("minTermFreq").getAsJsonArray()));
+        factory.add(buildIntFeatureFactory("minDocFreq", root.get("minDocFreq").getAsJsonArray()));
+        factory.add(buildIntFeatureFactory("maxDocFreq", root.get("maxDocFreq").getAsJsonArray()));
+        factory.add(buildIntFeatureFactory("minWordLength", root.get("minWordLength").getAsJsonArray()));
+        factory.add(buildIntFeatureFactory("maxWordLength", root.get("maxWordLength").getAsJsonArray()));
+        return factory;
     }
 
     private QueryFactory buildBoostingFactory(JsonObject childRoot) {
@@ -486,7 +503,7 @@ public class FeatureFactorySerializer extends AbstractFeatureSerializer
         try {
             clazz = Class.forName(getClassName(paramName));
         } catch (ClassNotFoundException e) {
-            throw new RuntimeException();
+            throw new RuntimeException(e);
         }
         return new WeightableListFeatureFactory(paramName, clazz, fields,
                 defaultWeights, minSetSizeInt, maxSetSizeInt);
