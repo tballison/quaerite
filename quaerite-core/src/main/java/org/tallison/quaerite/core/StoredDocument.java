@@ -79,6 +79,8 @@ public class StoredDocument {
     public String toString() {
         return "StoredDocument{" +
                 "fields=" + fields +
+                ", id='" + id + '\'' +
+                ", index='" + index + '\'' +
                 '}';
     }
 

@@ -49,7 +49,6 @@ import org.tallison.quaerite.core.features.ParameterizableStringListFeature;
 import org.tallison.quaerite.core.features.QueryOperator;
 import org.tallison.quaerite.core.features.StringFeature;
 import org.tallison.quaerite.core.features.StringListFeature;
-import org.tallison.quaerite.core.features.WeightableField;
 import org.tallison.quaerite.core.features.WeightableListFeature;
 import org.tallison.quaerite.core.features.factories.BoostingQueryFactory;
 import org.tallison.quaerite.core.features.factories.CustomHandlerFactory;

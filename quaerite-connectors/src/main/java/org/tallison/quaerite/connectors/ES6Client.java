@@ -16,6 +16,7 @@
  */
 package org.tallison.quaerite.connectors;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -34,7 +35,8 @@ public class ES6Client extends ESClient {
     }
 
     @Override
-    protected Map<String, Object> getQueryMap(QueryRequest queryRequest, List<String> fieldsToRetrieve) {
+    protected Map<String, Object> getQueryMap(QueryRequest queryRequest, List<String> fieldsToRetrieve)
+            throws IOException, SearchClientException {
         Map<String, Object> map = super.getQueryMap(queryRequest, fieldsToRetrieve);
         map.remove("track_total_hits");
         return map;

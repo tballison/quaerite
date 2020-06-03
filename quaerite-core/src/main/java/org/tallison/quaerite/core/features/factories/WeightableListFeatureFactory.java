@@ -27,7 +27,6 @@ import java.util.Set;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.math3.util.FastMath;
-import org.tallison.quaerite.core.features.QF;
 import org.tallison.quaerite.core.features.WeightableField;
 import org.tallison.quaerite.core.features.WeightableListFeature;
 import org.tallison.quaerite.core.util.MathUtil;

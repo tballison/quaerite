@@ -46,6 +46,7 @@ import org.tallison.quaerite.core.queries.BooleanClause;
 import org.tallison.quaerite.core.queries.BooleanQuery;
 import org.tallison.quaerite.core.queries.LuceneQuery;
 import org.tallison.quaerite.core.queries.MatchAllDocsQuery;
+import org.tallison.quaerite.core.queries.MoreLikeThisQuery;
 import org.tallison.quaerite.core.queries.MultiMatchQuery;
 import org.tallison.quaerite.core.queries.Query;
 import org.tallison.quaerite.core.queries.TermQuery;
@@ -335,6 +336,36 @@ public class TestESClient {
         consumer.join();
 
         assertEquals(27846, idCounter.get());
+    }
+
+    @Test
+    public void testMLT() throws Exception {
+        SearchClient searchClient = SearchClientFactory.getClient(TMDB_URL);
+        MoreLikeThisQuery q = new MoreLikeThisQuery();
+        QF qf = new QF();
+        qf.add(new WeightableField("title"));
+        qf.add(new WeightableField("overview"));
+        q.setQF(qf);
+        QueryStrings queryStrings = new QueryStrings();
+        queryStrings.addQueryString("index1", "tmdb");
+        queryStrings.addQueryString("id1", "1366");//the original rocky
+        queryStrings.addQueryString("index2", "tmdb");
+        queryStrings.addQueryString("id2", "1367");//rocky ii
+
+        //these don't appear to have an affect
+        //I can see via the debugger that they are correctly sent to es
+        //but the unit test doesn't currently actually test these.
+        queryStrings.addQueryString("text1", "drago");//try to promote rocky 4;
+        queryStrings.addQueryString("text2", "not human");
+        q.setQueryStrings(queryStrings);
+
+
+        QueryRequest request = new QueryRequest(q);
+        request.addFieldsToRetrieve("_id", "title");
+        SearchResultSet resultSet = searchClient.search(request);
+        assertEquals("1374", resultSet.getId(0)); //rocky iv
+        assertEquals("1371", resultSet.getId(1));
+        assertEquals("312221", resultSet.getId(2));
     }
 
     @Disabled

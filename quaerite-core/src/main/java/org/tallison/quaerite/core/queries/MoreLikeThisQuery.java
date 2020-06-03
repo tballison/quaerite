@@ -16,14 +16,6 @@
  */
 package org.tallison.quaerite.core.queries;
 
-import org.tallison.quaerite.core.QueryStrings;
-import org.tallison.quaerite.core.features.MaxDocFreq;
-import org.tallison.quaerite.core.features.MaxQueryTerms;
-import org.tallison.quaerite.core.features.MaxWordLength;
-import org.tallison.quaerite.core.features.MinDocFreq;
-import org.tallison.quaerite.core.features.MinTermFreq;
-import org.tallison.quaerite.core.features.MinWordLength;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -34,9 +26,19 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.tallison.quaerite.core.QueryStrings;
+import org.tallison.quaerite.core.features.MaxDocFreq;
+import org.tallison.quaerite.core.features.MaxQueryTerms;
+import org.tallison.quaerite.core.features.MaxWordLength;
+import org.tallison.quaerite.core.features.MinDocFreq;
+import org.tallison.quaerite.core.features.MinTermFreq;
+import org.tallison.quaerite.core.features.MinWordLength;
+
 /**
  * This represents ES's MoreLikeThisQuery for now.
  * We may have to make modifications to make it work with Solr going forward.
+ *
+ * This does not yet support artificial documents
  */
 public class MoreLikeThisQuery extends MultiFieldQuery {
 
@@ -44,9 +46,12 @@ public class MoreLikeThisQuery extends MultiFieldQuery {
     public static String QUERY_STRING_ID_NAME = "id";
     public static String QUERY_STRING_TEXT_NAME = "text";
 
-    private static Pattern INDEX_PATTERN = Pattern.compile("\\A"+QUERY_STRING_INDEX_NAME+"\\d+\\Z");
-    private static Pattern ID_PATTERN = Pattern.compile("\\A"+QUERY_STRING_ID_NAME+"\\d+\\Z");
-    private static Pattern TEXT_PATTERN = Pattern.compile("\\A"+QUERY_STRING_TEXT_NAME+"\\d+\\Z");
+    private static Pattern INDEX_PATTERN = Pattern.compile("\\A" +
+            QUERY_STRING_INDEX_NAME + "(\\d+)\\Z");
+    private static Pattern ID_PATTERN = Pattern.compile("\\A" +
+            QUERY_STRING_ID_NAME + "(\\d+)\\Z");
+    private static Pattern TEXT_PATTERN = Pattern.compile("\\A" +
+            QUERY_STRING_TEXT_NAME + "(\\d+)\\Z");
 
     private final List<IndexIdPair> indexIdPairs = new ArrayList<>();
     private final List<String> texts = new ArrayList<>();
@@ -152,7 +157,7 @@ public class MoreLikeThisQuery extends MultiFieldQuery {
                 indexes.put(i, value);
                 used.add(name);
             } else if (idMatcher.reset(name).find()) {
-                int i = Integer.parseInt(indexMatcher.group(1));
+                int i = Integer.parseInt(idMatcher.group(1));
                 String value = queryStrings.getStringByName(name);
                 ids.put(i, value);
                 used.add(name);
@@ -163,11 +168,12 @@ public class MoreLikeThisQuery extends MultiFieldQuery {
         }
         if (indexes.size() != ids.size()) {
             throw new IllegalArgumentException("Mismatch in number of ids and number of indices!" +
-                    " "+ids.size() + " "+indexes.size());
+                    " " + ids.size() + " <> " + indexes.size());
         }
         for (int i : indexes.keySet()) {
             if (! ids.containsKey(i)) {
-                throw new IllegalArgumentException("Can't find id"+i+" to match index"+i);
+                throw new IllegalArgumentException("Can't find id" +
+                        i + " to match index" + i);
             }
             indexIdPairs.add(new IndexIdPair(indexes.get(i), ids.get(i)));
         }
@@ -208,16 +214,34 @@ public class MoreLikeThisQuery extends MultiFieldQuery {
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), indexIdPairs, texts, maxQueryTerms, minTermFreq, minDocFreq, maxDocFreq, minWordLength, maxWordLength);
+        return Objects.hash(super.hashCode(), indexIdPairs, texts,
+                maxQueryTerms, minTermFreq, minDocFreq,
+                maxDocFreq, minWordLength, maxWordLength);
     }
 
-    private static class IndexIdPair {
+    public List<IndexIdPair> getIndexIdPairs() {
+        return indexIdPairs;
+    }
+
+    public List<String> getTexts() {
+        return texts;
+    }
+
+    public static class IndexIdPair {
         private final String index;
         private final String id;
 
         public IndexIdPair(String index, String id) {
             this.index = index;
             this.id = id;
+        }
+
+        public String getIndex() {
+            return index;
+        }
+
+        public String getId() {
+            return id;
         }
     }
 }
