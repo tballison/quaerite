@@ -83,6 +83,7 @@ import org.tallison.quaerite.core.queries.MultiFieldQuery;
 import org.tallison.quaerite.core.queries.MultiMatchQuery;
 import org.tallison.quaerite.core.queries.Query;
 import org.tallison.quaerite.core.queries.SingleStringQuery;
+import org.tallison.quaerite.core.queries.TemplateQuery;
 import org.tallison.quaerite.core.queries.TermQuery;
 import org.tallison.quaerite.core.queries.TermsQuery;
 import org.tallison.quaerite.core.util.JsonUtil;
@@ -112,6 +113,7 @@ public class QuerySerializer extends AbstractFeatureSerializer
     private static final String BOOLEAN = "boolean";
     private static final String BOOSTING = "boosting";
     private static final String MORE_LIKE_THIS = "more_like_this";
+    private static final String TEMPLATE = "template";
 
     @Override
     public Query deserialize(JsonElement jsonElement, Type type,
@@ -158,11 +160,24 @@ public class QuerySerializer extends AbstractFeatureSerializer
             return buildBoosting(jsonObj);
         } else if (queryType.equals(MORE_LIKE_THIS)) {
             return buildMoreLikeThis(jsonObj);
+        } else if (queryType.equals(TEMPLATE)) {
+            return updateQueryWithStringName(buildTemplate(jsonObj), jsonObj);
         } else {
             throw new IllegalArgumentException(
                     "I regret I don't yet support: " + queryType);
         }
+    }
 
+    private Query buildTemplate(JsonObject jsonObj) {
+        String id = jsonObj.get("id").getAsString();
+        TemplateQuery templateQuery = new TemplateQuery(id, "");
+        if (jsonObj.has("params")) {
+            JsonObject params = jsonObj.getAsJsonObject("params");
+            for (String k : params.keySet()) {
+                templateQuery.putParam(k, params.get(k).getAsString());
+            }
+        }
+        return templateQuery;
     }
 
     private Query buildMoreLikeThis(JsonObject obj) {
@@ -611,11 +626,26 @@ public class QuerySerializer extends AbstractFeatureSerializer
             jsonObject.add(BOOSTING, serializeBoosting((BoostingQuery) query));
         } else if (query instanceof MoreLikeThisQuery) {
             jsonObject.add(MORE_LIKE_THIS, serializeMoreLikeThisQuery((MoreLikeThisQuery)query));
+        } else if (query instanceof TemplateQuery) {
+            jsonObject.add(TEMPLATE, serializeTemplate((TemplateQuery)query));
         } else {
             throw new IllegalArgumentException(
                     "I'm sorry, I don't yet support: " + query.getClass());
         }
         return jsonObject;
+    }
+
+    private JsonElement serializeTemplate(TemplateQuery query) {
+        JsonObject root = new JsonObject();
+        root.add("id", new JsonPrimitive(query.getTemplateId()));
+        if (query.getParams().size() > 0) {
+            JsonObject params = new JsonObject();
+            for (String key : query.getParams().keySet()) {
+                params.add(key, new JsonPrimitive(query.getParams().get(key)));
+            }
+            root.add("params", params);
+        }
+        return root;
     }
 
     private JsonElement serializeMoreLikeThisQuery(MoreLikeThisQuery query) {

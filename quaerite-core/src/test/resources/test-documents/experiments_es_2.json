@@ -1,0 +1,55 @@
+{
+  "scorers": [
+    {
+      "class": "AtLeastOneAtN",
+      "atN": 1
+    },
+    {
+      "class": "AtLeastOneAtN",
+       "atN": 3
+    },
+	{
+      "class": "AtLeastOneAtN",
+      "atN": 5
+    },
+	{
+      "class": "AtLeastOneAtN",
+      "atN": 10
+    },
+	{
+      "class": "AtLeastOneAtN",
+        "atN": 30
+    },
+	{
+      "class": "NDCG",
+      "atN": 10,
+      "params": {
+        "useForTrain": true,
+        "useForTest": true,
+        "exportPMatrix": true
+      }
+    },
+	{
+      "class": "TotalDocsReturned"
+    },
+	{
+      "class": "TotalElapsedTime"
+    }
+  ],
+  "experiments": {
+    "title": {
+      "name": "title",
+      "searchServerUrl": "http://localhost:9200/tmdb",
+      "query": {
+        "template": {
+          "id": "super_template",
+          "params": {
+            "filter": "this is a filter",
+            "sort": "{}",
+            "queryTemplate": "subquery"
+          }
+        }
+      }
+    }
+  }
+}

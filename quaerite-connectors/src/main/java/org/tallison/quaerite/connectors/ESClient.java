@@ -53,6 +53,7 @@ import org.tallison.quaerite.core.queries.MoreLikeThisQuery;
 import org.tallison.quaerite.core.queries.MultiMatchQuery;
 import org.tallison.quaerite.core.queries.Query;
 import org.tallison.quaerite.core.queries.SingleStringQuery;
+import org.tallison.quaerite.core.queries.TemplateQuery;
 import org.tallison.quaerite.core.queries.TermQuery;
 import org.tallison.quaerite.core.queries.TermsQuery;
 import org.tallison.quaerite.core.stats.TokenDF;
@@ -107,7 +108,11 @@ public class ESClient extends SearchClient {
             LOG.trace(jsonQuery);
         }
         //System.out.println(jsonQuery);
-        JsonResponse json = postJson(url + "_search", jsonQuery);
+        String endpoint = url + "_search";
+        if (query.getQuery() instanceof TemplateQuery) {
+            endpoint += "/template";
+        }
+        JsonResponse json = postJson(endpoint, jsonQuery);
         if (json.getStatus() != 200) {
             throw new SearchClientException(json.getMsg() + "\nfor " + jsonQuery);
         }
@@ -253,12 +258,25 @@ public class ESClient extends SearchClient {
             return getBoostingMap((BoostingQuery) query);
         } else if (query instanceof MoreLikeThisQuery) {
             return getMoreLikeThisMap((MoreLikeThisQuery)query);
+        } else if (query instanceof TemplateQuery) {
+            return getTemplateQuery((TemplateQuery)query);
         } else {
             throw new IllegalArgumentException(
                     "I regret I don't yet know how to handle queries of type: "
                             + query.getClass());
         }
         return queryMap;
+    }
+
+    private Map<String, Object> getTemplateQuery(TemplateQuery query) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("id", query.getTemplateId());
+        Map<String, String> params = new HashMap<>();
+        for (String k : query.getParams().keySet()) {
+            params.put(k, query.getParams().get(k));
+        }
+        map.put("params", params);
+        return map;
     }
 
     private Map<String, Object> getMoreLikeThisMap(MoreLikeThisQuery query)

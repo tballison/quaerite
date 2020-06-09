@@ -46,6 +46,7 @@ import org.tallison.quaerite.core.queries.EDisMaxQuery;
 import org.tallison.quaerite.core.queries.MultiFieldQuery;
 import org.tallison.quaerite.core.queries.MultiMatchQuery;
 import org.tallison.quaerite.core.queries.Query;
+import org.tallison.quaerite.core.queries.TemplateQuery;
 import org.tallison.quaerite.core.queries.TermsQuery;
 import org.tallison.quaerite.core.scorers.AbstractJudgmentScorer;
 import org.tallison.quaerite.core.scorers.NDCG;
@@ -289,5 +290,29 @@ public class TestExperimentSet {
                         ExperimentSet.fromJson(reader);
                     }
                 });
+    }
+
+    @Test
+    public void testTemplate() throws Exception {
+        ExperimentSet experimentSet = null;
+        try (Reader reader =
+                     new BufferedReader(new InputStreamReader(
+                             TestExperimentSet.class.getResourceAsStream(
+                                     "/test-documents/experiments_es_2.json"),
+                             StandardCharsets.UTF_8))) {
+            experimentSet = ExperimentSet.fromJson(reader);
+        }
+        //test deserialization before modifying experiment set
+        String json = experimentSet.toJson();
+        ExperimentSet revivified = ExperimentSet.fromJson(new StringReader(json));
+        assertEquals(experimentSet, revivified);
+
+        Query q = experimentSet.getExperiments().get("title").getQuery();
+        assertTrue(q instanceof TemplateQuery);
+
+        TemplateQuery tq = (TemplateQuery)q;
+        assertEquals("super_template", tq.getTemplateId());
+        assertEquals("subquery", tq.getParams().get("queryTemplate"));
+
     }
 }
