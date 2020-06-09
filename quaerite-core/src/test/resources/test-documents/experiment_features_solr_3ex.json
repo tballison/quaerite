@@ -47,8 +47,9 @@
     }
   ],
   "featureFactories": {
-    "urls": [
-      "http://localhost:8983/solr/tmdb"
+    "serverConnection": [
+      {"url": "http://localhost:8983/solr/tmdb"},
+      {"url": "http://localhost:8983/solr/tmdb2"}
     ],
     "query": {
       "edismax": {

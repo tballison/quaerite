@@ -43,7 +43,9 @@
   ],
   "experiments": {
     "title": {
-      "searchServerUrl": "http://localhost:8983/solr/tmdb",
+      "serverConnection": {
+        "url" : "http://localhost:8983/solr/tmdb"
+      },
       "query": {
         "edismax" : {
           "qf": "title"
@@ -51,7 +53,9 @@
       }
     },
     "overview": {
-      "searchServerUrl": "http://localhost:8983/solr/tmdb",
+      "serverConnection": {
+        "url" : "http://localhost:8983/solr/tmdb"
+      },
       "query": {
         "edismax" : {
           "qf": ["overview"]
@@ -60,14 +64,19 @@
       "filterQueries": []
     },
     "people": {
-      "searchServerUrl": "http://localhost:8983/solr/tmdb",
+      "serverConnection": {
+        "url" : "http://localhost:8983/solr/tmdb"
+      },
       "query": {
         "edismax" : {
           "qf": ["people"]
         }
-      }    },
+      }
+    },
     "people_title": {
-      "searchServerUrl": "http://localhost:8983/solr/tmdb",
+      "serverConnection": {
+        "url" : "http://localhost:8983/solr/tmdb"
+      },
       "query": {
         "edismax" : {
           "qf": ["people","title"]

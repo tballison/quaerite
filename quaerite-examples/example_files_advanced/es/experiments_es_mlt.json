@@ -38,7 +38,9 @@
   ],
   "experiments": {
     "best_fields": {
-      "searchServerUrl": "http://localhost:9200/tmdb",
+      "serverConnection": {
+        "url" : "http://localhost:9200/tmdb"
+      },
       "query": {
         "multi_match": {
           "type": "best_fields",
@@ -53,7 +55,9 @@
       }
     },
     "cross_fields": {
-      "searchServerUrl": "http://localhost:9200/tmdb",
+      "serverConnection": {
+        "url" : "http://localhost:9200/tmdb"
+      },
       "query": {
         "multi_match": {
           "type": "cross_fields",
@@ -68,7 +72,9 @@
       }
     },
     "most_fields": {
-      "searchServerUrl": "http://localhost:9200/tmdb",
+      "serverConnection": {
+        "url" : "http://localhost:9200/tmdb"
+      },
       "query": {
         "multi_match": {
           "type": "most_fields",
@@ -83,7 +89,9 @@
       }
     },
     "phrase": {
-      "searchServerUrl": "http://localhost:9200/tmdb",
+      "serverConnection": {
+        "url" : "http://localhost:9200/tmdb"
+      },
       "query": {
         "multi_match": {
           "type": "phrase",

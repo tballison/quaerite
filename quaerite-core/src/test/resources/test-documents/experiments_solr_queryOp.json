@@ -7,7 +7,9 @@
   ],
   "experiments": {
     "unspecified": {
-      "searchServerUrl": "http://localhost:8983/solr/tmdb",
+      "serverConnection": {
+        "url" : "http://localhost:8983/solr/tmdb"
+      },
       "query": {
         "edismax" : {
           "qf": ["title", "overview"]
@@ -15,7 +17,9 @@
       }
     },
     "query_and": {
-      "searchServerUrl": "http://localhost:8983/solr/tmdb",
+      "serverConnection": {
+        "url" : "http://localhost:8983/solr/tmdb"
+      },
       "query": {
         "edismax" : {
           "qf": ["title", "overview"],
@@ -26,7 +30,9 @@
       }
     },
     "query_or_none": {
-      "searchServerUrl": "http://localhost:8983/solr/tmdb",
+      "serverConnection": {
+        "url" : "http://localhost:8983/solr/tmdb"
+      },
       "query": {
         "edismax" : {
           "qf": ["title", "overview"],
@@ -37,7 +43,9 @@
       }
     },
     "query_or_int": {
-      "searchServerUrl": "http://localhost:8983/solr/tmdb",
+      "serverConnection": {
+        "url" : "http://localhost:8983/solr/tmdb"
+      },
       "query": {
         "edismax" : {
           "qf": ["title", "overview"],
@@ -49,7 +57,9 @@
       }
     },
     "query_or_int_no_op": {
-      "searchServerUrl": "http://localhost:8983/solr/tmdb",
+      "serverConnection": {
+        "url" : "http://localhost:8983/solr/tmdb"
+      },
       "query": {
         "edismax" : {
           "qf": ["title", "overview"],
@@ -60,7 +70,9 @@
       }
     },
     "query_or_percent_neg20": {
-      "searchServerUrl": "http://localhost:8983/solr/tmdb",
+      "serverConnection": {
+        "url" : "http://localhost:8983/solr/tmdb"
+      },
       "query": {
         "edismax" : {
           "qf": ["title", "overview"],
@@ -72,7 +84,9 @@
       }
     },
     "query_or_percent_no_op_neg20": {
-      "searchServerUrl": "http://localhost:8983/solr/tmdb",
+      "serverConnection": {
+        "url" : "http://localhost:8983/solr/tmdb"
+      },
       "query": {
         "edismax" : {
           "qf": ["title", "overview"],
@@ -83,7 +97,9 @@
       }
     },
     "query_or_percent_18": {
-      "searchServerUrl": "http://localhost:8983/solr/tmdb",
+      "serverConnection": {
+        "url" : "http://localhost:8983/solr/tmdb"
+      },
       "query": {
         "edismax" : {
           "qf": ["title", "overview"],
@@ -95,7 +111,9 @@
       }
     },
     "query_or_percent_no_op_18": {
-      "searchServerUrl": "http://localhost:8983/solr/tmdb",
+      "serverConnection": {
+        "url" : "http://localhost:8983/solr/tmdb"
+      },
       "query": {
         "edismax" : {
           "qf": ["title", "overview"],

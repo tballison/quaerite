@@ -42,8 +42,8 @@
     }
   ],
   "featureFactories": {
-    "urls": [
-      "http://localhost:9300/tmdb"
+    "serverConnection": [
+      {"url": "http://localhost:9300/tmdb"}
     ],
     "query": {
       "multi_match": {

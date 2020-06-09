@@ -39,7 +39,9 @@
   "experiments": {
     "title": {
       "name": "title",
-      "searchServerUrl": "http://localhost:8983/solr/tmdb",
+      "serverConnection": {
+        "url" : "http://localhost:8983/solr/tmdb"
+      },
       "query": {
         "edismax": {
           "qf": [

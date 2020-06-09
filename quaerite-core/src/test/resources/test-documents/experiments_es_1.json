@@ -39,7 +39,9 @@
   "experiments": {
     "title": {
       "name": "title",
-      "searchServerUrl": "http://localhost:9200/tmdb",
+      "serverConnection": {
+        "url" : "http://localhost:9200/tmdb"
+      },
       "query": {
         "bool": {
           "should": [
@@ -70,7 +72,9 @@
       }
     },
     "boostingExperiment": {
-      "searchServerUrl": "http://localhost:9200/tmdb",
+      "serverConnection": {
+        "url" : "http://localhost:9200/tmdb"
+      },
       "query": {
         "boosting": {
           "positive": {

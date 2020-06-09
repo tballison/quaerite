@@ -17,9 +17,9 @@
     }
   ],
   "featureFactories": {
-    "urls": [
-      "http://localhost:8983/solr/tmdb",
-      "http://localhost:8983/solr/tmdb2"
+    "serverConnection": [
+      {"url": "http://localhost:8983/solr/tmdb"},
+      {"url": "http://localhost:8983/solr/tmdb2"}
     ],
     "customHandlers": {
       "custom1": {},

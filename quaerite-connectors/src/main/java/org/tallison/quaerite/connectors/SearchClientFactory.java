@@ -28,18 +28,22 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.apache.http.client.HttpClient;
+import org.tallison.quaerite.core.ServerConnection;
 
 public class SearchClientFactory {
 
     public static SearchClient getClient(String url) throws IOException,
             SearchClientException {
-        return getClient(url, null, null);
+        return getClient(new ServerConnection(url));
     }
 
-    public static SearchClient getClient(String url, String user,
-                                         String password)
+    public static SearchClient getClient(ServerConnection connection)
             throws IOException, SearchClientException {
-        return getClient(url, HttpUtils.getClient(url, user, password));
+        return getClient(connection.getURL(),
+                HttpUtils.getClient(
+                        connection.getURL(),
+                        connection.getUser(),
+                        connection.getPassword()));
     }
 
     public static SearchClient getClient(String url, HttpClient httpClient)
@@ -84,8 +88,10 @@ public class SearchClientFactory {
             JsonObject root = new JsonParser().parse(reader).getAsJsonObject();
             JsonObject version = root.getAsJsonObject("version");
             String number = version.get("number").getAsString();
-            String major = number.substring(0,1);
-            if (major.equals("6")) {
+            String major = number.substring(0, 1);
+            if (major.equals("2") || major.equals("3") || major.equals("4")) {
+                return new ES4Client(url, httpClient);
+            } else if (major.equals("6")) {
                 return new ES6Client(url, httpClient);
             } else if (major.equals("7")) {
                 return new ESClient(url, httpClient);

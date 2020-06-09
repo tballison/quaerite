@@ -38,7 +38,9 @@
   ],
   "experiments": {
     "title": {
-      "searchServerUrl": "http://localhost:8983/solr/tmdb",
+      "serverConnection": {
+        "url" : "http://localhost:8983/solr/tmdb"
+      },
       "query": {
         "edismax": {
           "qf": "title"
@@ -46,7 +48,9 @@
       }
     },
     "tb_title": {
-      "searchServerUrl": "http://localhost:8983/solr/tmdb",
+      "serverConnection": {
+        "url" : "http://localhost:8983/solr/tmdb"
+      },
       "query": {
         "edismax": {
           "qf":"tb_title"
@@ -54,7 +58,9 @@
       }
     },
 	"tss_title": {
-      "searchServerUrl": "http://localhost:8983/solr/tmdb",
+      "serverConnection": {
+        "url" : "http://localhost:8983/solr/tmdb"
+      },
       "query": {
         "edismax": {
           "qf": "tss_title"
@@ -62,7 +68,9 @@
       }
     },
     "all_title": {
-      "searchServerUrl": "http://localhost:8983/solr/tmdb",
+      "serverConnection": {
+        "url" : "http://localhost:8983/solr/tmdb"
+      },
       "query": {
         "edismax": {
           "qf": [

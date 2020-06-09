@@ -100,7 +100,8 @@ public abstract class AbstractExperimentRunner extends AbstractCLI {
             return;
         }
         experimentDB.initScoreTable(scorers);
-        SearchClient searchClient = SearchClientFactory.getClient(experiment.getSearchServerUrl());
+        SearchClient searchClient =
+                SearchClientFactory.getClient(experiment.getServerConnection());
 
         if (StringUtils.isBlank(experimentConfig.getIdField())) {
             LOG.info("default document 'idField' not set in experiment config. " +
@@ -110,11 +111,11 @@ public abstract class AbstractExperimentRunner extends AbstractCLI {
         }
 
         JudgmentList validated = searchServerValidatedMap.get(
-                experiment.getSearchServerUrl() +
+                experiment.getServerConnection() +
                         "_" + judgmentListId);
         if (validated == null) {
             validated = validate(searchClient, judgmentList);
-            searchServerValidatedMap.put(experiment.getSearchServerUrl()
+            searchServerValidatedMap.put(experiment.getServerConnection()
                     + "_" + judgmentListId, validated);
         }
         ExecutorService executorService = Executors.newFixedThreadPool(
@@ -360,7 +361,8 @@ public abstract class AbstractExperimentRunner extends AbstractCLI {
             this.queue = judgments;
             this.experiment = experiment;
             this.query = experiment.getQuery();
-            this.searchClient = SearchClientFactory.getClient(experiment.getSearchServerUrl());
+            this.searchClient =
+                    SearchClientFactory.getClient(experiment.getServerConnection());
             this.scorers = scorers;
             this.dbClient = experimentDB.getQueryRunnerDBClient(scorers);
         }

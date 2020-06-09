@@ -38,7 +38,9 @@
   ],
   "experiments": {
     "title": {
-      "searchServerUrl": "http://localhost:9200/tmdb",
+      "serverConnection": {
+        "url" : "http://localhost:9200/tmdb"
+      },
       "query": {
         "multi_match": {
           "type": "best_fields",
@@ -51,7 +53,9 @@
       }
     },
     "title_min": {
-      "searchServerUrl": "http://localhost:9200/tmdb",
+      "serverConnection": {
+        "url" : "http://localhost:9200/tmdb"
+      },
       "query": {
         "multi_match": {
           "type": "best_fields",
@@ -63,7 +67,9 @@
       }
     },
 	"title_porter": {
-      "searchServerUrl": "http://localhost:9200/tmdb",
+      "serverConnection": {
+        "url" : "http://localhost:9200/tmdb"
+      },
       "query": {
         "multi_match": {
           "type": "best_fields",

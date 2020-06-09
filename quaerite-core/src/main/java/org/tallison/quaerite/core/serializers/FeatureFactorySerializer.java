@@ -36,6 +36,7 @@ import com.google.gson.JsonParseException;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
+import org.tallison.quaerite.core.ServerConnection;
 import org.tallison.quaerite.core.features.Boost;
 import org.tallison.quaerite.core.features.CustomHandler;
 import org.tallison.quaerite.core.features.DisMaxBoost;
@@ -60,6 +61,7 @@ import org.tallison.quaerite.core.features.factories.ParameterizableStringFactor
 import org.tallison.quaerite.core.features.factories.ParameterizableStringListFactory;
 import org.tallison.quaerite.core.features.factories.QueryFactory;
 import org.tallison.quaerite.core.features.factories.QueryOperatorFeatureFactory;
+import org.tallison.quaerite.core.features.factories.ServerConnectionFeatureFactory;
 import org.tallison.quaerite.core.features.factories.StringFeatureFactory;
 import org.tallison.quaerite.core.features.factories.StringListFeatureFactory;
 import org.tallison.quaerite.core.features.factories.WeightableListFeatureFactory;
@@ -121,9 +123,39 @@ public class FeatureFactorySerializer extends AbstractFeatureSerializer
             return createQueryFactory((JsonObject) jsonFeatureFactory);
         } else if (CustomHandler.class.isAssignableFrom(clazz)) {
             return buildCustomHandlerFactory(jsonFeatureFactory.getAsJsonObject());
+        } else if (ServerConnection.class.isAssignableFrom(clazz)) {
+            return buildServerConnectionFactory(jsonFeatureFactory);
         } else {
             throw new IllegalArgumentException("Sorry, I can't yet handle: " + paramName);
         }
+    }
+
+    private FeatureFactory buildServerConnectionFactory(JsonElement el) {
+        List<ServerConnection> connections = new ArrayList<>();
+        if (el.isJsonArray()) {
+            for (JsonElement connectEl : el.getAsJsonArray()) {
+                if (! connectEl.isJsonObject()) {
+                    throw new IllegalArgumentException(
+                            "server connection must be object: " + el);
+                }
+                JsonObject connectObj = connectEl.getAsJsonObject();
+                String url = connectObj.get("url").getAsString();
+                String user = (connectObj.has("user")) ?
+                        connectObj.get("user").getAsString() : null;
+                String pw = (connectObj.has("password")) ?
+                        connectObj.get("password").getAsString() : null;
+                connections.add(new ServerConnection(url, user, pw));
+            }
+        } else if (el.isJsonObject()) {
+            JsonObject connectObj = el.getAsJsonObject();
+            String url = connectObj.get("url").getAsString();
+            String user = (connectObj.has("user")) ?
+                    connectObj.get("user").getAsString() : null;
+            String pw = (connectObj.has("password")) ?
+                    connectObj.get("password").getAsString() : null;
+            connections.add(new ServerConnection(url, user, pw));
+        }
+        return new ServerConnectionFeatureFactory(connections);
     }
 
 

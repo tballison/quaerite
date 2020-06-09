@@ -26,6 +26,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonPrimitive;
+import org.tallison.quaerite.core.ServerConnection;
 import org.tallison.quaerite.core.features.CustomHandler;
 import org.tallison.quaerite.core.features.WeightableField;
 import org.tallison.quaerite.core.features.factories.CustomHandlerFactory;
@@ -43,10 +44,7 @@ public class AbstractFeatureSerializer {
                 clazzName = clazzName.substring(0,1).toUpperCase(Locale.US) +
                         clazzName.substring(1);
             }
-            //this is to handle urls
-            if (! clazzName.equals("PS") && clazzName.endsWith("S")) {
-                clazzName = clazzName.substring(0, clazzName.length() - 1);
-            }
+
             return DEFAULT_CLASS_NAME_SPACE + clazzName;
         }
         return clazzName;
@@ -166,6 +164,8 @@ public class AbstractFeatureSerializer {
             return Query.class;
         } else if (clazzName.equals(CustomHandlerFactory.NAME)) {
             return CustomHandler.class;
+        } else if (clazzName.equals(ServerConnection.NAME)) {
+            return ServerConnection.class;
         }
         if (!clazzName.contains(".")) {
             clazzName = getClassName(clazzName);

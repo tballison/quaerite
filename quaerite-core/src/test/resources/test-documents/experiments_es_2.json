@@ -39,7 +39,9 @@
   "experiments": {
     "title": {
       "name": "title",
-      "searchServerUrl": "http://localhost:9200/tmdb",
+      "serverConnection": {
+        "url" : "http://localhost:9200/tmdb"
+      },
       "query": {
         "template": {
           "id": "super_template",

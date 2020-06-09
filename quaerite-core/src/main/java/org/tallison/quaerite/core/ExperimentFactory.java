@@ -24,12 +24,11 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.apache.commons.lang3.tuple.Pair;
 import org.tallison.quaerite.core.features.CustomHandler;
-import org.tallison.quaerite.core.features.URL;
 import org.tallison.quaerite.core.features.factories.CustomHandlerFactory;
 import org.tallison.quaerite.core.features.factories.FeatureFactories;
 import org.tallison.quaerite.core.features.factories.FeatureFactory;
 import org.tallison.quaerite.core.features.factories.QueryFactory;
-import org.tallison.quaerite.core.features.factories.StringFeatureFactory;
+import org.tallison.quaerite.core.features.factories.ServerConnectionFeatureFactory;
 import org.tallison.quaerite.core.queries.Query;
 import org.tallison.quaerite.core.scorers.AbstractJudgmentScorer;
 import org.tallison.quaerite.core.scorers.Scorer;
@@ -39,8 +38,6 @@ import org.tallison.quaerite.core.serializers.ScorerListSerializer;
 import org.tallison.quaerite.core.util.MathUtil;
 
 public class ExperimentFactory {
-
-    public static  final String SEARCH_SERVER_URLS = "urls";
 
     private GAConfig gaConfig = new GAConfig();
 
@@ -137,8 +134,9 @@ public class ExperimentFactory {
 
 
     public Experiment generateRandomExperiment(String name) {
-        FeatureFactory urlFactory = featureFactories.get(SEARCH_SERVER_URLS);
-        String searchUrl = urlFactory.random().toString();
+        FeatureFactory serverConnectionFactory = featureFactories.get(
+                ServerConnection.NAME);
+        ServerConnection serverConnection = (ServerConnection)serverConnectionFactory.random();
         CustomHandler customHandler = null;
         CustomHandlerFactory customHandlerfactory =
                 (CustomHandlerFactory)featureFactories.get(
@@ -147,7 +145,7 @@ public class ExperimentFactory {
             customHandler = customHandlerfactory.random();
         }
         QueryFactory queryListFactory = (QueryFactory)featureFactories.get(QueryFactory.NAME);
-        Experiment rand = new Experiment(name, searchUrl, customHandler, queryListFactory.random());
+        Experiment rand = new Experiment(name, serverConnection, customHandler, queryListFactory.random());
         addFilterQueries(rand);
         return rand;
     }
@@ -160,8 +158,9 @@ public class ExperimentFactory {
 
     public List<Experiment> permute(int maxExperiments) {
         List<Experiment> experiments = new ArrayList<>();
-        for (URL url : ((StringFeatureFactory<URL>)(
-                featureFactories.get(SEARCH_SERVER_URLS)))
+        for (ServerConnection serverConnection :
+                ((ServerConnectionFeatureFactory)(
+                featureFactories.get(ServerConnection.NAME)))
                 .permute(maxExperiments)) {
             List<Query> queries = (featureFactories.get(QueryFactory.NAME)).permute(maxExperiments);
             for (Query q : queries) {
@@ -170,7 +169,7 @@ public class ExperimentFactory {
                         return experiments;
                     }
                     Experiment ex = new Experiment("permute_" + experiments.size(),
-                            url.toString(), handler, q);
+                            serverConnection, handler, q);
                     addFilterQueries(ex);
                     experiments.add(ex);
                 }
@@ -190,14 +189,19 @@ public class ExperimentFactory {
     }
 
     public Pair<Experiment, Experiment> crossover(Experiment parentA, Experiment parentB) {
-        StringFeatureFactory featureFactory = (StringFeatureFactory)featureFactories.get(SEARCH_SERVER_URLS);
-        Pair<URL, URL> urls = featureFactory.crossover(
-                new URL(parentA.getSearchServerUrl()),
-                new URL(parentB.getSearchServerUrl()));
+        ServerConnectionFeatureFactory featureFactory =
+                (ServerConnectionFeatureFactory) featureFactories.get(
+                        ServerConnection.NAME);
+        Pair<ServerConnection, ServerConnection> urls =
+                featureFactory.crossover(
+                parentA.getServerConnection(),
+                parentB.getServerConnection());
         Pair<CustomHandler, CustomHandler> customHandlers = Pair.of(null, null);
         if (featureFactories.get(CustomHandlerFactory.NAME) != null) {
-            customHandlers = featureFactories.get(CustomHandlerFactory.NAME)
-                    .crossover(parentA.getCustomHandler(), parentB.getCustomHandler());
+            customHandlers = featureFactories.get(
+                    CustomHandlerFactory.NAME)
+                    .crossover(parentA.getCustomHandler(),
+                            parentB.getCustomHandler());
         }
 
         QueryFactory queryFactory = (QueryFactory)featureFactories.get(
@@ -205,21 +209,22 @@ public class ExperimentFactory {
 
         Pair<Query, Query> queries = queryFactory.crossover(parentA.getQuery(), parentB.getQuery());
 
-        URL urlA = (MathUtil.RANDOM.nextFloat() <= 0.5) ? urls.getLeft()
+        ServerConnection urlA = (MathUtil.RANDOM.nextFloat() <= 0.5) ?
+                urls.getLeft()
                 : urls.getRight();
         CustomHandler customHandlerA = (MathUtil.RANDOM.nextFloat() <= 0.5) ?
                 customHandlers.getLeft() : customHandlers.getRight();
         Query queryA = (MathUtil.RANDOM.nextFloat() <= 0.5) ?
                 queries.getLeft() : queries.getRight();
-        Experiment childA = new Experiment("childA", urlA.toString(),
+        Experiment childA = new Experiment("childA", urlA,
                 customHandlerA, queryA);
 
-        URL urlB = (MathUtil.RANDOM.nextFloat() <= 0.5) ? urls.getLeft() : urls.getRight();
+        ServerConnection urlB = (MathUtil.RANDOM.nextFloat() <= 0.5) ? urls.getLeft() : urls.getRight();
         CustomHandler customHandlerB = (MathUtil.RANDOM.nextFloat() <= 0.5) ?
                 customHandlers.getLeft() : customHandlers.getRight();
         Query queryB = (MathUtil.RANDOM.nextFloat() <= 0.5) ?
                 queries.getLeft() : queries.getRight();
-        Experiment childB = new Experiment("childB", urlB.toString(),
+        Experiment childB = new Experiment("childB", urlB,
                 customHandlerB, queryB);
         addFilterQueries(childA);
         addFilterQueries(childB);
@@ -230,12 +235,13 @@ public class ExperimentFactory {
     public Experiment mutate(Experiment parent, float mutationProbability, float mutationAmplitude) {
         Experiment mutated = parent.deepCopy();
         if (MathUtil.RANDOM.nextFloat() < mutationProbability) {
-            FeatureFactory featureFactory = featureFactories.get(
-                    SEARCH_SERVER_URLS);
-            String serverUrl = featureFactory.mutate(
-                    new URL(mutated.getSearchServerUrl()),
-                    mutationProbability, mutationAmplitude).toString();
-            mutated.setSearchServerUrl(serverUrl);
+            ServerConnectionFeatureFactory featureFactory =
+                    (ServerConnectionFeatureFactory)featureFactories.get(
+                            ServerConnection.NAME);
+            ServerConnection serverConnection = featureFactory.mutate(
+                    mutated.getServerConnection(),
+                    mutationProbability, mutationAmplitude);
+            mutated.setServerConnection(serverConnection);
         }
 
         if (MathUtil.RANDOM.nextFloat() < mutationProbability &&

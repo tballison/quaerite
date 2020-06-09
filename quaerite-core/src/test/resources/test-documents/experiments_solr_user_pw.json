@@ -39,7 +39,9 @@
   "experiments": {
     "title": {
       "serverConnection": {
-        "url" : "http://localhost:8983/solr/tmdb"
+        "url": "experiments_solr_1.json",
+        "user": "mememememe",
+        "password": "pwpwpwpwpw"
       },
       "query": {
         "edismax" : {
@@ -66,7 +68,8 @@
         "edismax" : {
           "qf": ["people"]
         }
-      }    },
+      }
+    },
     "people_title": {
       "serverConnection": {
         "url" : "http://localhost:8983/solr/tmdb"

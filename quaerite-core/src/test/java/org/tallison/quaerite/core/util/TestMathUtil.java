@@ -28,6 +28,7 @@ import java.util.Random;
 import org.junit.jupiter.api.Test;
 import org.tallison.quaerite.core.Experiment;
 import org.tallison.quaerite.core.GAConfig;
+import org.tallison.quaerite.core.ServerConnection;
 import org.tallison.quaerite.core.queries.MatchAllDocsQuery;
 import org.tallison.quaerite.core.stats.ExperimentScorePair;
 
@@ -130,7 +131,7 @@ public class TestMathUtil {
     private static class ExperimentProxy extends Experiment {
 
         public ExperimentProxy(String name) {
-            super(name, "", new MatchAllDocsQuery());
+            super(name, new ServerConnection(""), new MatchAllDocsQuery());
         }
     }
 

@@ -38,7 +38,9 @@
   ],
   "experiments": {
     "cast": {
-      "searchServerUrl": "http://localhost:9200/tmdb",
+      "serverConnection": {
+        "url" : "http://localhost:9200/tmdb"
+      },
       "query": {
         "multi_match": {
           "type": "best_fields",
@@ -49,7 +51,9 @@
       }
     },
     "cast_min": {
-      "searchServerUrl": "http://localhost:9200/tmdb",
+      "serverConnection": {
+        "url" : "http://localhost:9200/tmdb"
+      },
       "query": {
         "multi_match": {
           "type": "best_fields",
@@ -61,7 +65,9 @@
       }
     },
 	"cast_porter": {
-      "searchServerUrl": "http://localhost:9200/tmdb",
+      "serverConnection": {
+        "url" : "http://localhost:9200/tmdb"
+      },
       "query": {
         "multi_match": {
           "type": "best_fields",
@@ -72,7 +78,9 @@
       }
     },
     "cast_shingle": {
-      "searchServerUrl": "http://localhost:9200/tmdb",
+      "serverConnection": {
+        "url" : "http://localhost:9200/tmdb"
+      },
       "query": {
         "multi_match": {
           "type": "best_fields",
@@ -83,7 +91,9 @@
       }
     },
     "directors": {
-      "searchServerUrl": "http://localhost:9200/tmdb",
+      "serverConnection": {
+        "url" : "http://localhost:9200/tmdb"
+      },
       "query": {
         "multi_match": {
           "type": "best_fields",
@@ -94,7 +104,9 @@
       }
     },
     "directors_min": {
-      "searchServerUrl": "http://localhost:9200/tmdb",
+      "serverConnection": {
+        "url" : "http://localhost:9200/tmdb"
+      },
       "query": {
         "multi_match": {
           "type": "best_fields",
@@ -106,7 +118,9 @@
       }
     },
     "directors_porter": {
-      "searchServerUrl": "http://localhost:9200/tmdb",
+      "serverConnection": {
+        "url" : "http://localhost:9200/tmdb"
+      },
       "query": {
         "multi_match": {
           "type": "best_fields",
@@ -117,7 +131,9 @@
       }
     },
     "directors_shingle": {
-      "searchServerUrl": "http://localhost:9200/tmdb",
+      "serverConnection": {
+        "url" : "http://localhost:9200/tmdb"
+      },
       "query": {
         "multi_match": {
           "type": "best_fields",
@@ -128,7 +144,9 @@
       }
     },
     "people": {
-      "searchServerUrl": "http://localhost:9200/tmdb",
+      "serverConnection": {
+        "url" : "http://localhost:9200/tmdb"
+      },
       "query": {
         "multi_match": {
           "type": "best_fields",
@@ -139,7 +157,9 @@
       }
     },
     "people_min": {
-      "searchServerUrl": "http://localhost:9200/tmdb",
+      "serverConnection": {
+        "url" : "http://localhost:9200/tmdb"
+      },
       "query": {
         "multi_match": {
           "type": "best_fields",
@@ -151,7 +171,9 @@
       }
     },
     "people_porter": {
-      "searchServerUrl": "http://localhost:9200/tmdb",
+      "serverConnection": {
+        "url" : "http://localhost:9200/tmdb"
+      },
       "query": {
         "multi_match": {
           "type": "best_fields",
@@ -162,7 +184,9 @@
       }
     },
     "people_shingle": {
-      "searchServerUrl": "http://localhost:9200/tmdb",
+      "serverConnection": {
+        "url" : "http://localhost:9200/tmdb"
+      },
       "query": {
         "multi_match": {
           "type": "best_fields",

@@ -19,6 +19,7 @@ package org.tallison.quaerite.core;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -313,6 +314,30 @@ public class TestExperimentSet {
         TemplateQuery tq = (TemplateQuery)q;
         assertEquals("super_template", tq.getTemplateId());
         assertEquals("subquery", tq.getParams().get("queryTemplate"));
+    }
 
+    @Test
+    public void testUserPw() throws Exception {
+
+        ExperimentSet experimentSet = null;
+        try (Reader reader =
+                     new BufferedReader(new InputStreamReader(
+                             TestExperimentSet.class.getResourceAsStream(
+                                     "/test-documents/experiments_solr_user_pw.json"),
+                             StandardCharsets.UTF_8))) {
+            experimentSet = ExperimentSet.fromJson(reader);
+        }
+        //test deserialization before modifying experiment set
+        String json = experimentSet.toJson();
+        ExperimentSet revivified = ExperimentSet.fromJson(new StringReader(json));
+        assertEquals(experimentSet, revivified);
+        Experiment titleExperiment = experimentSet.getExperiment("title");
+        assertEquals("mememememe", titleExperiment.getServerConnection().getUser());
+        assertEquals("pwpwpwpwpw", titleExperiment.getServerConnection().getPassword());
+
+        Experiment peopleTitleExperiment = experimentSet.getExperiment("people_title");
+        assertEquals("http://localhost:8983/solr/tmdb", peopleTitleExperiment.getServerConnection().getURL());
+        assertNull(peopleTitleExperiment.getServerConnection().getUser());
+        assertNull(peopleTitleExperiment.getServerConnection().getPassword());
     }
 }

@@ -35,6 +35,7 @@ import org.tallison.quaerite.core.JudgmentList;
 import org.tallison.quaerite.core.Judgments;
 import org.tallison.quaerite.core.QueryInfo;
 import org.tallison.quaerite.core.QueryStrings;
+import org.tallison.quaerite.core.ServerConnection;
 import org.tallison.quaerite.core.features.WeightableField;
 import org.tallison.quaerite.core.features.WeightableListFeature;
 import org.tallison.quaerite.core.queries.EDisMaxQuery;
@@ -67,7 +68,8 @@ public class TestExperimentDB {
 
         EDisMaxQuery q = new EDisMaxQuery("actualQuery");
         q.getQF().addAll(weightableListFeature.getWeightableFields());
-        Experiment experiment = new Experiment("test1", "http://solr", q);
+        Experiment experiment = new Experiment("test1",
+                new ServerConnection("http://solr"), q);
 
         List<Query> filterQueries = new ArrayList<>();
         for (String fq : new String[]{"fq1", "fq2"}) {
@@ -92,7 +94,7 @@ public class TestExperimentDB {
         }
 
         assertEquals("test1", revivified.getName());
-        assertEquals("http://solr", revivified.getSearchServerUrl());
+        assertEquals("http://solr", revivified.getServerConnection().getURL());
         List<Query> filterQueries2 = revivified.getFilterQueries();
         assertEquals(2, filterQueries2.size());
         assertIterableEquals(filterQueries, filterQueries2);

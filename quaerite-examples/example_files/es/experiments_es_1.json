@@ -38,7 +38,9 @@
   ],
   "experiments": {
     "title_overview1": {
-      "searchServerUrl": "http://localhost:9200/tmdb",
+      "serverConnection": {
+        "url" : "http://localhost:9200/tmdb"
+      },
       "query": {
         "multi_match": {
           "type": "best_fields",
@@ -50,7 +52,9 @@
       }
     },
     "title_overview2": {
-      "searchServerUrl": "http://localhost:9200/tmdb",
+      "serverConnection": {
+        "url" : "http://localhost:9200/tmdb"
+      },
       "query": {
         "multi_match": {
           "type": "best_fields",
@@ -62,7 +66,9 @@
       }
     },
     "title_overview3": {
-      "searchServerUrl": "http://localhost:9200/tmdb",
+      "serverConnection": {
+        "url" : "http://localhost:9200/tmdb"
+      },
       "query": {
         "multi_match": {
           "type": "cross_fields",
@@ -75,7 +81,9 @@
     },
 	"people": {
       "name": "people",
-      "searchServerUrl": "http://localhost:9200/tmdb",
+      "serverConnection": {
+        "url" : "http://localhost:9200/tmdb"
+      },
       "query": {
         "multi_match": {
           "type": "best_fields",

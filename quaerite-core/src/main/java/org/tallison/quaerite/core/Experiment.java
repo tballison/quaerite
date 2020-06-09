@@ -20,7 +20,6 @@ import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -35,20 +34,22 @@ public class Experiment {
             .registerTypeAdapter(Query.class, new QuerySerializer())
             .create();
     private String name;
-    private String searchServerUrl;
+    private ServerConnection serverConnection;
     private CustomHandler customHandler;
     private Query query;
     private final List<Query> filterQueries = new ArrayList<>();
 
-    public Experiment(String name, String searchServerUrl, CustomHandler customHandler, Query query) {
+    public Experiment(String name, ServerConnection serverConnection,
+                      CustomHandler customHandler, Query query) {
         this.customHandler = customHandler;
         this.name = name;
-        this.searchServerUrl = searchServerUrl;
+        this.serverConnection = serverConnection;
         this.query = query;
     }
 
-    public Experiment(String name, String searchServerUrl, Query query) {
-        this(name, searchServerUrl, null, query);
+    public Experiment(String name, ServerConnection
+            serverConnection, Query query) {
+        this(name, serverConnection, null, query);
     }
 
     //consider adding clone to experiment with a new name
@@ -79,8 +80,8 @@ public class Experiment {
         return name;
     }
 
-    public String getSearchServerUrl() {
-        return searchServerUrl;
+    public ServerConnection getServerConnection() {
+        return serverConnection;
     }
 
     /**
@@ -108,7 +109,7 @@ public class Experiment {
     public String toString() {
         return "Experiment{" +
                 "name='" + name + '\'' +
-                ", searchServerUrl='" + searchServerUrl + '\'' +
+                ", serverConnectionProperties=" + serverConnection +
                 ", customHandler=" + customHandler +
                 ", query=" + query +
                 ", filterQueries=" + filterQueries +
@@ -116,7 +117,7 @@ public class Experiment {
     }
 
     public Experiment deepCopy() {
-        Experiment cp = new Experiment(getName(), getSearchServerUrl(), getCustomHandler(), getQuery());
+        Experiment cp = new Experiment(getName(), getServerConnection(), getCustomHandler(), getQuery());
         List<Query> cpFq = new ArrayList<>();
         for (Query q : filterQueries) {
             cpFq.add((Query)q.deepCopy());
@@ -125,8 +126,9 @@ public class Experiment {
         return cp;
     }
 
-    public void setSearchServerUrl(String serverUrl) {
-        this.searchServerUrl = serverUrl;
+    public void setServerConnection(
+            ServerConnection serverConnection) {
+        this.serverConnection = serverConnection;
     }
 
     public void setCustomHandler(CustomHandler customHandler) {
@@ -140,17 +142,28 @@ public class Experiment {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof Experiment)) return false;
+        if (o == null || getClass() != o.getClass()) return false;
+
         Experiment that = (Experiment) o;
-        return Objects.equals(name, that.name) &&
-                Objects.equals(searchServerUrl, that.searchServerUrl) &&
-                Objects.equals(customHandler, that.customHandler) &&
-                Objects.equals(query, that.query) &&
-                Objects.equals(filterQueries, that.filterQueries);
+
+        if (name != null ? !name.equals(that.name) : that.name != null) return false;
+        if (serverConnection != null ?
+                !serverConnection.equals(that.serverConnection) :
+                that.serverConnection != null)
+            return false;
+        if (customHandler != null ? !customHandler.equals(that.customHandler) : that.customHandler != null)
+            return false;
+        if (query != null ? !query.equals(that.query) : that.query != null) return false;
+        return filterQueries != null ? filterQueries.equals(that.filterQueries) : that.filterQueries == null;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, searchServerUrl, customHandler, query, filterQueries);
+        int result = name != null ? name.hashCode() : 0;
+        result = 31 * result + (serverConnection != null ? serverConnection.hashCode() : 0);
+        result = 31 * result + (customHandler != null ? customHandler.hashCode() : 0);
+        result = 31 * result + (query != null ? query.hashCode() : 0);
+        result = 31 * result + (filterQueries != null ? filterQueries.hashCode() : 0);
+        return result;
     }
 }
