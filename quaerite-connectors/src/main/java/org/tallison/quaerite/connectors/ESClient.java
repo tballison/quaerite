@@ -215,17 +215,26 @@ public class ESClient extends SearchClient {
         Map<String, Object> overallMap;
         if (queryRequest.getQuery() instanceof TemplateQuery) {
             overallMap = queryMap;
+            Map<String,Object> params = (Map<String,Object>)overallMap.get("params");
+            params.put("size", queryRequest.getNumResults());
+            params.put("from", queryRequest.getStart());
+            trackTotalHits(params, true);
+            params.put("track_total_hits", true);
         } else {
             overallMap = wrapAMap("query", queryMap);
+            overallMap.put("size", queryRequest.getNumResults());
+            overallMap.put("from", queryRequest.getStart());
+            trackTotalHits(overallMap, true);
         }
 
         if (fieldsToRetrieve.size() > 0) {
             overallMap.put("_source", fieldsToRetrieve);
         }
-        overallMap.put("size", queryRequest.getNumResults());
-        overallMap.put("from", queryRequest.getStart());
-        overallMap.put("track_total_hits", true);
         return overallMap;
+    }
+
+    void trackTotalHits(Map<String, Object> map, boolean b) {
+        map.put("track_total_hits", true);
     }
 
     BooleanClause.OCCUR getFilterOccur() {
@@ -277,6 +286,7 @@ public class ESClient extends SearchClient {
         Map<String, Object> map = new HashMap<>();
         map.put("id", query.getTemplateId());
         Map<String, String> params = new HashMap<>();
+        params.put("keywords", query.getQueryString());
         for (String k : query.getParams().keySet()) {
             params.put(k, query.getParams().get(k));
         }
