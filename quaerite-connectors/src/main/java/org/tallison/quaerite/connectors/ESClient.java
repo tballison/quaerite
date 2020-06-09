@@ -212,7 +212,12 @@ public class ESClient extends SearchClient {
         }
 
         Map<String, Object> queryMap = buildQuery(fullQuery);
-        Map<String, Object> overallMap = wrapAMap("query", queryMap);
+        Map<String, Object> overallMap;
+        if (queryRequest.getQuery() instanceof TemplateQuery) {
+            overallMap = queryMap;
+        } else {
+            overallMap = wrapAMap("query", queryMap);
+        }
 
         if (fieldsToRetrieve.size() > 0) {
             overallMap.put("_source", fieldsToRetrieve);
