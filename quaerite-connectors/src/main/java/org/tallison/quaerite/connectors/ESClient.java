@@ -219,17 +219,16 @@ public class ESClient extends SearchClient {
             params.put("size", queryRequest.getNumResults());
             params.put("from", queryRequest.getStart());
             trackTotalHits(params, true);
-            params.put("track_total_hits", true);
         } else {
             overallMap = wrapAMap("query", queryMap);
             overallMap.put("size", queryRequest.getNumResults());
             overallMap.put("from", queryRequest.getStart());
             trackTotalHits(overallMap, true);
+            if (fieldsToRetrieve.size() > 0) {
+                overallMap.put("_source", fieldsToRetrieve);
+            }
         }
 
-        if (fieldsToRetrieve.size() > 0) {
-            overallMap.put("_source", fieldsToRetrieve);
-        }
         return overallMap;
     }
 

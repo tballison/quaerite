@@ -75,6 +75,9 @@ public abstract class AbstractExperimentRunner extends AbstractCLI {
 
     static Logger LOG = Logger.getLogger(AbstractExperimentRunner.class);
 
+    //number of retries allowed for querying the search application
+    static final int MAX_RETRIES = 2;
+
     static final int DEFAULT_NUM_THREADS = 8;
     private static final int MAX_MATRIX_COLS = 100;
     //this caches a judgment list of valid judgments
@@ -114,7 +117,7 @@ public abstract class AbstractExperimentRunner extends AbstractCLI {
                 experiment.getServerConnection() +
                         "_" + judgmentListId);
         if (validated == null) {
-            validated = validate(searchClient, judgmentList);
+            validated = validate(searchClient, judgmentList, experimentConfig.getSleep());
             searchServerValidatedMap.put(experiment.getServerConnection()
                     + "_" + judgmentListId, validated);
         }
@@ -133,7 +136,9 @@ public abstract class AbstractExperimentRunner extends AbstractCLI {
 
         for (int i = 0; i < experimentConfig.getNumThreads(); i++) {
             executorCompletionService.submit(
-                    new QueryRunner(experimentConfig.getIdField(), maxRows,
+                    new QueryRunner(experimentConfig.getIdField(),
+                            experimentConfig.getSleep(),
+                            maxRows,
                             queue, experiment, experimentDB, scorers));
         }
 
@@ -234,7 +239,7 @@ public abstract class AbstractExperimentRunner extends AbstractCLI {
      * @return
      */
     private JudgmentList validate(SearchClient searchClient,
-                                  JudgmentList judgmentList)
+                                  JudgmentList judgmentList, long sleep)
             throws IOException, SearchClientException {
         String idField = searchClient.getIdField(experimentConfig);
         Set<String> judgmentIds = new HashSet<>();
@@ -254,6 +259,13 @@ public abstract class AbstractExperimentRunner extends AbstractCLI {
                         idField, searchClient, ids.size(), valid);
                 len = 0;
                 ids.clear();
+                if (experimentConfig.getSleep() > 0) {
+                    try {
+                        Thread.sleep(experimentConfig.getSleep());
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
             }
         }
         if (ids.size() > 0) {
@@ -342,9 +354,12 @@ public abstract class AbstractExperimentRunner extends AbstractCLI {
 
     static class QueryRunner implements Callable<Integer> {
         private static AtomicInteger IDs = new AtomicInteger();
+        private static AtomicInteger PROCESSED = new AtomicInteger();
         private final int threadNum = IDs.getAndIncrement();
+
         private final String idField;
         private final int maxRows;
+        private final long sleep;
         private final ArrayBlockingQueue<Judgments> queue;
         private final Experiment experiment;
         private final Query query;//thread safe clone of the query
@@ -353,10 +368,11 @@ public abstract class AbstractExperimentRunner extends AbstractCLI {
         private final QueryRunnerDBClient dbClient;
         private int batched = 0;
 
-        public QueryRunner(String idField, int maxRows, ArrayBlockingQueue<Judgments> judgments,
+        public QueryRunner(String idField, long sleep, int maxRows, ArrayBlockingQueue<Judgments> judgments,
                            Experiment experiment, ExperimentDB experimentDB,
                            List<Scorer> scorers) throws SQLException, IOException, SearchClientException {
             this.idField = idField;
+            this.sleep = sleep;
             this.maxRows = maxRows;
             this.queue = judgments;
             this.experiment = experiment;
@@ -381,6 +397,9 @@ public abstract class AbstractExperimentRunner extends AbstractCLI {
                     if (batched++ > 100) {
                         batched = 0;
                         dbClient.executeBatch();
+                    }
+                    if (sleep > 0) {
+                        Thread.sleep(sleep);
                     }
                 }
             } finally {
@@ -409,11 +428,22 @@ public abstract class AbstractExperimentRunner extends AbstractCLI {
             queryRequest.setNumResults(maxRows);
 
             SearchResultSet searchResultSet = null;
-            try {
-                searchResultSet = searchClient.search(queryRequest);
-            } catch (SearchClientException | IOException e) {
-                //TODO add exception to searchResultSet and log
-                e.printStackTrace();
+            int tries = 0;
+            boolean success = false;
+            while (! success && tries++ < MAX_RETRIES) {
+                try {
+                    searchResultSet = searchClient.search(queryRequest);
+                    success = true;
+                } catch (SearchClientException | IOException e) {
+                    //TODO add exception to searchResultSet and log
+                    LOG.warn("error getting results for: "
+                            + judgments.getQueryStrings(), e);
+                }
+            }
+            if (success == false || searchResultSet == null) {
+                LOG.warn("failed to get results for: " +
+                        judgments.getQueryStrings() + ". Ignoring this query.");
+                return;
             }
             dbClient.insertSearchResults(judgments.getQueryInfo(),
                     experiment.getName(), searchResultSet);
@@ -429,6 +459,8 @@ public abstract class AbstractExperimentRunner extends AbstractCLI {
                             + scorer.getClass());
                 }
             }
+            LOG.debug("processed '" + judgments.getQueryStrings()
+                    + "'; total: " + PROCESSED.incrementAndGet());
             dbClient.insertScores(judgments.getQueryInfo(), experiment.getName(), scorers);
         }
     }

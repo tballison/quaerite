@@ -46,14 +46,14 @@ public class ExperimentSet {
     private Map<String, Experiment> experiments = new LinkedHashMap<>();
     private transient Scorer trainScorer;
     private transient Scorer testScorer;
-    private ExperimentConfig experimentConfig;
+    private ExperimentConfig config;
 
     public ExperimentSet() {
-        experimentConfig = new ExperimentConfig();
+        config = new ExperimentConfig();
     }
 
     public ExperimentSet(ExperimentConfig experimentConfig) {
-        this.experimentConfig = experimentConfig;
+        this.config = experimentConfig;
     }
 
 
@@ -85,7 +85,7 @@ public class ExperimentSet {
     }
 
     public ExperimentConfig getExperimentConfig() {
-        return experimentConfig;
+        return config;
     }
     public String toJson() {
         return GSON.toJson(this);
@@ -164,11 +164,13 @@ public class ExperimentSet {
                 experiments.equals(that.experiments) &&
                 Objects.equals(trainScorer, that.trainScorer) &&
                 Objects.equals(testScorer, that.testScorer) &&
-                experimentConfig.equals(that.experimentConfig);
+                config.equals(that.config);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(maxRows, scorers, experiments, trainScorer, testScorer, experimentConfig);
+        return Objects.hash(maxRows, scorers, experiments,
+                trainScorer, testScorer,
+                config);
     }
 }

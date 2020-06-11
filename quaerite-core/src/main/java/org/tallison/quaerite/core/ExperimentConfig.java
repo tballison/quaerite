@@ -16,7 +16,6 @@
  */
 package org.tallison.quaerite.core;
 
-import java.util.Objects;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -26,6 +25,7 @@ public class ExperimentConfig {
 
     private int numThreads = DEFAULT_NUM_THREADS;
     private String idField = StringUtils.EMPTY;
+    private long sleep = -1;
 
     public int getNumThreads() {
         return numThreads;
@@ -36,22 +36,35 @@ public class ExperimentConfig {
     public String getIdField() {
         return idField;
     }
+    public void setIdField(String idField) {
+        this.idField = idField;
+    }
+    public long getSleep() {
+        return sleep;
+    }
+    public void setSleep(long sleep) {
+        this.sleep = sleep;
+    }
+    
+
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof ExperimentConfig)) return false;
+        if (o == null || getClass() != o.getClass()) return false;
+
         ExperimentConfig that = (ExperimentConfig) o;
-        return numThreads == that.numThreads &&
-                Objects.equals(idField, that.idField);
+
+        if (numThreads != that.numThreads) return false;
+        if (sleep != that.sleep) return false;
+        return idField != null ? idField.equals(that.idField) : that.idField == null;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(numThreads, idField);
-    }
-
-    public void setIdField(String idField) {
-        this.idField = idField;
+        int result = numThreads;
+        result = 31 * result + (idField != null ? idField.hashCode() : 0);
+        result = 31 * result + (int) (sleep ^ (sleep >>> 32));
+        return result;
     }
 }

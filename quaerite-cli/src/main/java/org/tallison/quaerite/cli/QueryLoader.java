@@ -27,6 +27,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -101,7 +102,7 @@ class QueryLoader {
                                                                 Set<String> queryStringNames,
                                                                 Iterable<CSVRecord> records) {
         //queryset, Map<queryInfo.getId, Judgments>
-        Map<String, Map<QueryStrings, Judgments>> queries = new HashMap<>();
+        Map<String, Map<QueryStrings, Judgments>> queries = new LinkedHashMap<>();
 
         int uniqueJudgments = 0;
         for (CSVRecord record : records) {

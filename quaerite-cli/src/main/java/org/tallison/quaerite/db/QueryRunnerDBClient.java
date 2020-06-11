@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.google.gson.Gson;
@@ -29,6 +30,7 @@ import com.google.gson.GsonBuilder;
 import org.apache.log4j.Logger;
 import org.tallison.quaerite.core.QueryInfo;
 import org.tallison.quaerite.core.SearchResultSet;
+import org.tallison.quaerite.core.StoredDocument;
 import org.tallison.quaerite.core.scorers.Scorer;
 
 /**
@@ -84,7 +86,17 @@ public class QueryRunnerDBClient implements Closeable {
 
     public void insertSearchResults(QueryInfo queryInfo, String experimentName,
                                     SearchResultSet results) throws SQLException {
-        String json = GSON.toJson(results);
+        //in case more fields were brought back than just id
+        //store only the ids
+        List<StoredDocument> docs = new ArrayList<>();
+        for (String id : results.getIds()) {
+            docs.add(new StoredDocument(id));
+        }
+
+        SearchResultSet winnowed = new SearchResultSet(results.getTotalHits(),
+                results.getQueryTime(), results.getElapsedTime(), docs);
+
+        String json = GSON.toJson(winnowed);
         insertResults.setString(1, queryInfo.getQueryId());
         insertResults.setString(2, experimentName);
         insertResults.setString(3, json);

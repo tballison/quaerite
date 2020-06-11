@@ -1,5 +1,5 @@
 {
-  "experimentConfig" :
+  "config" :
   {
     "numThreads": 20,
     "idField": "customIdField"
