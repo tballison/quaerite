@@ -18,6 +18,7 @@ package org.tallison.quaerite.core;
 
 import static java.util.stream.Collectors.toMap;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -106,4 +107,14 @@ public class Judgments {
         return queryInfo.getQueryCount();
     }
 
+    @Override
+    public String toString() {
+        return "Judgments{" +
+                "queryInfo=" + queryInfo +
+                ", judgments=" + judgments +
+                ", sorted=" + sorted +
+                ", updated=" + updated +
+                ", lock=" + Arrays.toString(lock) +
+                '}';
+    }
 }

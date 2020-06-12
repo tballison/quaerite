@@ -144,6 +144,7 @@ public class MoreLikeThisQuery extends MultiFieldQuery {
      */
     @Override
     public Set<String> setQueryStrings(QueryStrings queryStrings) {
+        indexIdPairs.clear();
         Matcher indexMatcher = INDEX_PATTERN.matcher("");
         Matcher textMatcher = TEXT_PATTERN.matcher("");
         Matcher idMatcher = ID_PATTERN.matcher("");
@@ -177,7 +178,6 @@ public class MoreLikeThisQuery extends MultiFieldQuery {
             }
             indexIdPairs.add(new IndexIdPair(indexes.get(i), ids.get(i)));
         }
-
         return used;
     }
 
@@ -242,6 +242,14 @@ public class MoreLikeThisQuery extends MultiFieldQuery {
 
         public String getId() {
             return id;
+        }
+
+        @Override
+        public String toString() {
+            return "IndexIdPair{" +
+                    "index='" + index + '\'' +
+                    ", id='" + id + '\'' +
+                    '}';
         }
     }
 }

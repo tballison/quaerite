@@ -202,7 +202,7 @@ public class ExperimentDB implements Closeable {
                 "QUERY_NAME VARCHAR(1024)," +
                 "QUERY_SET VARCHAR(256)," +
                 "QUERY_COUNT INTEGER," +
-                "JSON VARCHAR(10000));";
+                "JSON VARCHAR(64000));";
         executeSQL(connection, sql);
     }
 
