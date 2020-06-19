@@ -197,13 +197,19 @@ public class FeatureFactorySerializer extends AbstractFeatureSerializer
         QueryFactory<MoreLikeThisQuery> factory = new QueryFactory<>(
                 "more_like_this", MoreLikeThisQuery.class);
         factory.add(buildWeightableFeatureFactory("qf", root.get("qf").getAsJsonObject()));
-        factory.add(buildIntFeatureFactory("maxQueryTerms", root.get("maxQueryTerms").getAsJsonArray()));
-        factory.add(buildIntFeatureFactory("minTermFreq", root.get("minTermFreq").getAsJsonArray()));
-        factory.add(buildIntFeatureFactory("minDocFreq", root.get("minDocFreq").getAsJsonArray()));
-        factory.add(buildIntFeatureFactory("maxDocFreq", root.get("maxDocFreq").getAsJsonArray()));
-        factory.add(buildIntFeatureFactory("minWordLength", root.get("minWordLength").getAsJsonArray()));
-        factory.add(buildIntFeatureFactory("maxWordLength", root.get("maxWordLength").getAsJsonArray()));
+        addNonNullIntFactory(factory, "maxQueryTerms", root);
+        addNonNullIntFactory(factory, "minTermFreq", root);
+        addNonNullIntFactory(factory, "minDocFreq", root);
+        addNonNullIntFactory(factory, "maxDocFreq", root);
+        addNonNullIntFactory(factory, "minWordLength", root);
+        addNonNullIntFactory(factory, "maxWordLength", root);
         return factory;
+    }
+
+    private void addNonNullIntFactory(QueryFactory factory, String fieldName, JsonObject obj) {
+        if (obj.has(fieldName)) {
+            factory.add(buildIntFeatureFactory(fieldName, obj.get(fieldName).getAsJsonArray()));
+        }
     }
 
     private QueryFactory buildBoostingFactory(JsonObject childRoot) {

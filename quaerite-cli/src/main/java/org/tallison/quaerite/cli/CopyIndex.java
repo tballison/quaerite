@@ -70,7 +70,7 @@ public class CopyIndex extends AbstractCLI {
                         .desc("destination index url").build()
         );
         OPTIONS.addOption(
-                Option.builder("whiteListFields")
+                Option.builder("includeFields")
                         .hasArg()
                         .required(false)
                         .desc("copy only these fields; comma-delimited list").build()
@@ -83,7 +83,7 @@ public class CopyIndex extends AbstractCLI {
                         .desc("filter queries; comma-delimited list").build()
         );
         OPTIONS.addOption(
-                Option.builder("blackListFields")
+                Option.builder("excludeFields")
                         .hasArg()
                         .required(false)
                         .desc("do not copy these fields; comma-delimited list").build()
@@ -127,10 +127,10 @@ public class CopyIndex extends AbstractCLI {
         }
         SearchClient srcClient = SearchClientFactory.getClient(commandLine.getOptionValue("src"));
         SearchClient destClient = SearchClientFactory.getClient(commandLine.getOptionValue("dest"));
-        Set<String> whiteListFields = splitComma(
-                getString(commandLine, "whiteListFields", StringUtils.EMPTY));
-        Set<String> blackListFields = splitComma(
-                getString(commandLine, "blackListFields", StringUtils.EMPTY));
+        Set<String> includeFields = splitComma(
+                getString(commandLine, "includeFields", StringUtils.EMPTY));
+        Set<String> excludeFields = splitComma(
+                getString(commandLine, "excludeFields", StringUtils.EMPTY));
         Set<String> filterQueryStrings = splitComma(
                 getString(commandLine, "fq", StringUtils.EMPTY));
         Set<Query> filterQueries = new HashSet<>();
@@ -138,10 +138,10 @@ public class CopyIndex extends AbstractCLI {
             filterQueries.add(new LuceneQuery("", q));
         }
 
-        blackListFields = updateBlackList(srcClient, blackListFields);
+        excludeFields = updateExcludeList(srcClient, excludeFields);
 
-        LOG.debug("whiteListFields:" + whiteListFields);
-        LOG.debug("blackListFields:" + blackListFields);
+        LOG.debug("includeFields:" + includeFields);
+        LOG.debug("excludeFields:" + excludeFields);
         LOG.debug("filterQueries:" + filterQueries);
         CopyIndex copyIndex = new CopyIndex();
         if (commandLine.hasOption("clean")) {
@@ -150,15 +150,15 @@ public class CopyIndex extends AbstractCLI {
         copyIndex.setNumThreads(getInt(commandLine, "numThreads", NUM_THREADS));
         copyIndex.setBatchSize(getInt(commandLine, "b", BATCH_SIZE));
 
-        copyIndex.execute(srcClient, destClient, filterQueries, whiteListFields,
-                blackListFields);
+        copyIndex.execute(srcClient, destClient, filterQueries, includeFields,
+                excludeFields);
     }
 
-    private static Set<String> updateBlackList(SearchClient srcClient,
-                                               Set<String> blackListFields)
+    private static Set<String> updateExcludeList(SearchClient srcClient,
+                                               Set<String> excludeFields)
             throws IOException, SearchClientException {
         Set<String> tmp = new HashSet<>();
-        tmp.addAll(blackListFields);
+        tmp.addAll(excludeFields);
         tmp.addAll(srcClient.getCopyFields());
         tmp.addAll(srcClient.getSystemInternalFields());
         return tmp;
@@ -185,7 +185,7 @@ public class CopyIndex extends AbstractCLI {
 
     private void execute(SearchClient srcClient, SearchClient destClient,
                          Set<Query> filterQueries,
-                         Set<String> whiteListFields, Set<String> blackListFields)
+                         Set<String> includeFields, Set<String> excludeFields)
             throws IOException, SearchClientException {
         ArrayBlockingQueue<Set<String>> idQueue = new ArrayBlockingQueue<>(100);
 
@@ -200,7 +200,8 @@ public class CopyIndex extends AbstractCLI {
 
         for (int i = 0; i < numThreads; i++) {
             executorCompletionService.submit(new Copier(
-                    idQueue, srcClient, destClient, whiteListFields, blackListFields));
+                    idQueue, srcClient, destClient,
+                    includeFields, excludeFields));
         }
         int finished = 0;
         try {
@@ -236,21 +237,21 @@ public class CopyIndex extends AbstractCLI {
         private final ArrayBlockingQueue<Set<String>> ids;
         private final SearchClient src;
         private final SearchClient dest;
-        private final Set<String> whiteListFields;
-        private final Set<String> blackListFields;
+        private final Set<String> includeFields;
+        private final Set<String> excludeFields;
         private int totalDocs = 0;
 
         private Copier(ArrayBlockingQueue<Set<String>> ids,
                        SearchClient src, SearchClient dest,
-                       Set<String> whiteListFields, Set<String> blackListFields)
+                       Set<String> includeFields, Set<String> excludeFields)
                 throws IOException, SearchClientException {
             this.srcIdField = src.getDefaultIdField();
             this.destIdField = dest.getDefaultIdField();
             this.ids = ids;
             this.src = src;
             this.dest = dest;
-            this.whiteListFields = whiteListFields;
-            this.blackListFields = blackListFields;
+            this.includeFields = includeFields;
+            this.excludeFields = excludeFields;
         }
 
         @Override
@@ -263,7 +264,7 @@ public class CopyIndex extends AbstractCLI {
                     return totalDocs;
                 }
                 List<StoredDocument> docs = src.getDocs(srcIdField, myIds,
-                        whiteListFields, blackListFields);
+                        includeFields, excludeFields);
                 if (!srcIdField.equals(destIdField)) {
                     for (StoredDocument d : docs) {
                         d.rename(srcIdField, destIdField);

@@ -120,6 +120,21 @@ public class ESClient extends SearchClient {
         return getResultSet(root, start);
     }
 
+    /**
+     * for custom debugging/one-off kinds of things
+     *
+     * @param endpoint simple endpoint /_search, which will be added to the url
+     * @param json json to post
+     * @return
+     * @throws SearchClientException
+     * @throws IOException
+     */
+    public JsonResponse postRaw(String endpoint, String json)
+            throws SearchClientException, IOException {
+        String path = url + endpoint;
+        return postJson(path, json);
+    }
+
     public SearchResultSet startScroll(QueryRequest query, int size, int minutesAlive)
             throws SearchClientException, IOException {
         long start = System.currentTimeMillis();
@@ -471,15 +486,15 @@ public class ESClient extends SearchClient {
 
     @Override
     public List<StoredDocument> getDocs(String idField, Set<String> ids,
-                                        Set<String> whiteListFields,
-                                        Set<String> blackListFields)
+                                        Set<String> includeFields,
+                                        Set<String> excludeFields)
             throws IOException, SearchClientException {
         Map<String, Object> map = wrapAMap("ids", ids);
         String storedFields = "";
 
-        if (whiteListFields.size() > 0) {
+        if (includeFields.size() > 0) {
             storedFields = "?_source=" +
-                    encode(StringUtils.join(whiteListFields, ','));
+                    encode(StringUtils.join(includeFields, ','));
         }
 
         JsonResponse response = postJson(url + "/_doc/_mget" + storedFields, GSON.toJson(map));
@@ -488,10 +503,11 @@ public class ESClient extends SearchClient {
         }
         JsonArray docs = (JsonArray) ((JsonObject) response.getJson()).get("docs");
 
-        return jsonArrayToDocs(docs, blackListFields);
+        return jsonArrayToDocs(docs, excludeFields);
     }
 
-    private List<StoredDocument> jsonArrayToDocs(JsonArray docs, Set<String> blackListFields)
+    private List<StoredDocument> jsonArrayToDocs(JsonArray docs,
+                                                 Set<String> excludeFields)
             throws IOException, SearchClientException {
         List<StoredDocument> documents = new ArrayList<>();
         for (JsonElement el : docs) {
@@ -501,7 +517,7 @@ public class ESClient extends SearchClient {
             document.setIndex(index);
             JsonObject src = (JsonObject) ((JsonObject) el).get("_source");
             for (String k : src.keySet()) {
-                if (!blackListFields.contains(k)) {
+                if (! excludeFields.contains(k)) {
                     JsonElement v = src.get(k);
                     if (v.isJsonPrimitive()) {
                         document.addNonBlankField(k, v.getAsString());

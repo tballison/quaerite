@@ -365,8 +365,8 @@ public class SolrClient extends SearchClient {
 
     @Override
     public List<StoredDocument> getDocs(String idField, Set<String> ids,
-                                        Set<String> whiteListFields,
-                                        Set<String> blackListFields)
+                                        Set<String> includeFields,
+                                        Set<String> excludeFields)
             throws IOException, SearchClientException {
         StringBuilder sb = new StringBuilder();
         int i = 0;
@@ -382,8 +382,8 @@ public class SolrClient extends SearchClient {
         Map<String, String> qRequest = new HashMap<>();
         qRequest.put("query", sb.toString());
         qRequest.put("limit", Integer.toString(i + 10));
-        if (whiteListFields.size() > 0) {
-            String fields = StringUtils.join(whiteListFields, ",");
+        if (includeFields.size() > 0) {
+            String fields = StringUtils.join(includeFields, ",");
             qRequest.put("fields", fields);
         }
         String json = GSON.toJson(qRequest);
@@ -397,7 +397,7 @@ public class SolrClient extends SearchClient {
         JsonObject response = (JsonObject) ((JsonObject) root).get("response");
         long totalHits = response.get("numFound").getAsLong();
         if (response.has("docs")) {
-            documents = jsonArrayToDocs((JsonArray) response.get("docs"), blackListFields);
+            documents = jsonArrayToDocs((JsonArray) response.get("docs"), excludeFields);
         } else {
             documents = Collections.emptyList();
         }
@@ -405,7 +405,7 @@ public class SolrClient extends SearchClient {
     }
 
     private List<StoredDocument> jsonArrayToDocs(JsonArray docs,
-                                                 Set<String> blackListFields)
+                                                 Set<String>  excludeFields)
             throws IOException, SearchClientException {
         List<StoredDocument> documents = new ArrayList<>();
         String idKey = getDefaultIdField();
@@ -415,7 +415,7 @@ public class SolrClient extends SearchClient {
 
             StoredDocument document = new StoredDocument(id);
             for (String key : docObj.keySet()) {
-                if (!blackListFields.contains(key) && ! key.equals(idKey)) {
+                if (!excludeFields.contains(key) && ! key.equals(idKey)) {
                     JsonElement value = docObj.get(key);
                     if (value.isJsonArray()) {
                         for (int j = 0; j < ((JsonArray) value).size(); j++) {

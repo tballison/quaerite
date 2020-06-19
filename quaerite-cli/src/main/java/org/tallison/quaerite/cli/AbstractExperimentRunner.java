@@ -246,7 +246,7 @@ public abstract class AbstractExperimentRunner extends AbstractCLI {
         for (Judgments j : judgmentList.getJudgmentsList()) {
             judgmentIds.addAll(j.getSortedJudgments().keySet());
         }
-
+        LOG.info("about to validate " + judgmentIds.size() + " judgment ids");
         Set<String> valid = new HashSet<>();
 
         int len = 0;
@@ -279,7 +279,7 @@ public abstract class AbstractExperimentRunner extends AbstractCLI {
             for (String id : judgmentIds) {
                 if (!valid.contains(id)) {
                     invalidIds++;
-                    LOG.warn("I regret that I could not find: " + id + " in the index. " +
+                    LOG.debug("I regret that I could not find: " + id + " in the index. " +
                             "I'll remove this from the judgments before scoring.");
                 } else {
                     validIds++;
@@ -302,7 +302,7 @@ public abstract class AbstractExperimentRunner extends AbstractCLI {
                 if (valid.contains(e.getKey())) {
                     winnowedJugments.addJudgment(e.getKey(), e.getValue());
                 } else {
-                    LOG.warn("Could not find " + e.getKey() + " in the index!");
+                    LOG.debug("Could not find " + e.getKey() + " in the index!");
                 }
             }
             if (winnowedJugments.getSortedJudgments().size() > 0) {
@@ -321,6 +321,7 @@ public abstract class AbstractExperimentRunner extends AbstractCLI {
                     " queries because there were no judgments for them. " +
                     " There were " + validQueries + " valid queries.");
         }
+        LOG.info("finished validating " + judgmentIds.size() + " judgment ids");
         return retList;
 
     }

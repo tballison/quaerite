@@ -51,8 +51,8 @@ public class Solr4Client extends SolrClient {
 
     @Override
     public List<StoredDocument> getDocs(String idField, Set<String> ids,
-                                        Set<String> whiteListFields,
-                                        Set<String> blackListFields)
+                                        Set<String> includeFields,
+                                        Set<String> excludeFields)
             throws IOException, SearchClientException {
         //have to use old school url to make requests
         //because json request option isn't backwards compatible to 4.x
@@ -71,9 +71,9 @@ public class Solr4Client extends SolrClient {
                 sb.append(")");
                 QueryRequest q = new QueryRequest(new LuceneQuery(idField, sb.toString()));
                 q.setNumResults(i);
-                q.addFieldsToRetrieve(whiteListFields);
+                q.addFieldsToRetrieve(includeFields);
                 String url = generateRequestURL(q);
-                List<StoredDocument> localDocs = _getDocs(url, blackListFields);
+                List<StoredDocument> localDocs = _getDocs(url, excludeFields);
                 documents.addAll(localDocs);
                 i = 0;
                 sb.setLength(0);
@@ -84,15 +84,15 @@ public class Solr4Client extends SolrClient {
             sb.append(")");
             QueryRequest q = new QueryRequest(new LuceneQuery(idField, sb.toString()));
             q.setNumResults(i);
-            q.addFieldsToRetrieve(whiteListFields);
+            q.addFieldsToRetrieve(includeFields);
             String url = generateRequestURL(q);
-            List<StoredDocument> localDocs = _getDocs(url, blackListFields);
+            List<StoredDocument> localDocs = _getDocs(url, excludeFields);
             documents.addAll(localDocs);
         }
         return documents;
     }
 
-    private List<StoredDocument> _getDocs(String requestUrl, Set<String> blackListFields)
+    private List<StoredDocument> _getDocs(String requestUrl, Set<String> excludeFields)
             throws IOException, SearchClientException {
         List<StoredDocument> documents = new ArrayList<>();
         JsonResponse fullResponse = null;
@@ -117,7 +117,7 @@ public class Solr4Client extends SolrClient {
                 StoredDocument document = new StoredDocument(id);
 
                 for (String key : docObj.keySet()) {
-                    if (!blackListFields.contains(key) && !idKey.equals(id)) {
+                    if (!excludeFields.contains(key) && !idKey.equals(id)) {
                         JsonElement value = docObj.get(key);
                         if (value.isJsonArray()) {
                             for (int j = 0; j < ((JsonArray) value).size(); j++) {

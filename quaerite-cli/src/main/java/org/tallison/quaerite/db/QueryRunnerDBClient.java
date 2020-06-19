@@ -27,6 +27,7 @@ import java.util.List;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.tallison.quaerite.core.QueryInfo;
 import org.tallison.quaerite.core.SearchResultSet;
@@ -86,11 +87,17 @@ public class QueryRunnerDBClient implements Closeable {
 
     public void insertSearchResults(QueryInfo queryInfo, String experimentName,
                                     SearchResultSet results) throws SQLException {
-        //in case more fields were brought back than just id
-        //store only the ids
+        //in case more fields were brought back than just id/index
+        //store only the ids and index. This can happen with a template
+        //query in ES
         List<StoredDocument> docs = new ArrayList<>();
-        for (String id : results.getIds()) {
-            docs.add(new StoredDocument(id));
+        for (int i = 0; i < results.size(); i++) {
+            StoredDocument sd = results.get(i);
+            StoredDocument minimized = new StoredDocument(sd.getId());
+            if (! StringUtils.isAllBlank(sd.getIndex())) {
+                minimized.setIndex(sd.getIndex());
+            }
+            docs.add(minimized);
         }
 
         SearchResultSet winnowed = new SearchResultSet(results.getTotalHits(),

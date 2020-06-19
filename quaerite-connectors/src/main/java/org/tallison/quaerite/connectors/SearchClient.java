@@ -126,8 +126,8 @@ public abstract class SearchClient implements Closeable {
             throws IOException, SearchClientException;
 
     public abstract List<StoredDocument> getDocs(String idField, Set<String> ids,
-                                                 Set<String> whiteListFields,
-                                                 Set<String> blackListFields)
+                                                 Set<String> includeFields,
+                                                 Set<String> excludeFields)
             throws IOException, SearchClientException;
 
     /**

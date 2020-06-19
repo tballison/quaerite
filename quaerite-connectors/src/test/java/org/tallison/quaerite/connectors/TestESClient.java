@@ -284,13 +284,13 @@ public class TestESClient {
     }
 
     @Test
-    public void testGetDocsWhiteList() throws Exception {
+    public void testGetDocsIncludeList() throws Exception {
         Set<String> ids = new HashSet<>();
         ids.addAll(Arrays.asList("539 11252 1359 10576 12662".split(" ")));
         SearchClient searchClient = SearchClientFactory.getClient(TMDB_URL);
-        Set<String> whiteListFields = new HashSet<>();
-        whiteListFields.add("original_title");
-        List<StoredDocument> docs = searchClient.getDocs("_id", ids, whiteListFields, Collections.EMPTY_SET);
+        Set<String> includeFields = new HashSet<>();
+        includeFields.add("original_title");
+        List<StoredDocument> docs = searchClient.getDocs("_id", ids, includeFields, Collections.EMPTY_SET);
         assertEquals(5, docs.size());
         StoredDocument doc1359 = null;
         for (int i = 0; i < docs.size(); i++) {
