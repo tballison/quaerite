@@ -138,7 +138,7 @@ public class ESClient extends SearchClient {
     public SearchResultSet startScroll(QueryRequest query, int size, int minutesAlive)
             throws SearchClientException, IOException {
         long start = System.currentTimeMillis();
-        Map<String, Object> queryMap = getQueryMap(query, Collections.EMPTY_LIST);
+        Map<String, Object> queryMap = getQueryMap(query, query.getFieldsToRetrieve());
         if (query.getSortField() != null) {
             Map<String, String> sort = new HashMap<>();
             sort.put(query.getSortField(), query.getSortOrder().name().toLowerCase(Locale.US));
@@ -240,6 +240,7 @@ public class ESClient extends SearchClient {
             overallMap.put("from", queryRequest.getStart());
             trackTotalHits(overallMap, true);
             if (fieldsToRetrieve.size() > 0) {
+                //stored_fields?!
                 overallMap.put("_source", fieldsToRetrieve);
             }
         }
@@ -462,6 +463,7 @@ public class ESClient extends SearchClient {
             sb.append(indexJson).append("\n");
             sb.append(GSON.toJson(fields)).append("\n");
         }
+        //System.out.println(sb.toString());
         JsonResponse response = postJson(url + "/_bulk", sb.toString());
         if (response.getStatus() != 200) {
             throw new SearchClientException(response.getMsg());

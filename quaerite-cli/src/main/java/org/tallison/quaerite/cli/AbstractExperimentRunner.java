@@ -103,6 +103,7 @@ public abstract class AbstractExperimentRunner extends AbstractCLI {
             return;
         }
         experimentDB.initScoreTable(scorers);
+        //this client is only used in a single thread!
         SearchClient searchClient =
                 SearchClientFactory.getClient(experiment.getServerConnection());
 
@@ -365,7 +366,7 @@ public abstract class AbstractExperimentRunner extends AbstractCLI {
         private final Experiment experiment;
         private final Query query;//thread safe clone of the query
         private final List<Scorer> scorers;
-        private final SearchClient searchClient;
+        private final SearchClient searchClient;//created fresh one per thread
         private final QueryRunnerDBClient dbClient;
         private int batched = 0;
 
