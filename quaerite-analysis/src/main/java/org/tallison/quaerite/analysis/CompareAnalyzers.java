@@ -298,7 +298,8 @@ public class CompareAnalyzers {
 
     public Map<String, EquivalenceSet> compare(ServerConnection clientConnection,
                                                String baseField,
-                                               String filteredField, int minDF) throws IOException, SearchClientException {
+                                               String filteredField, int minDF)
+            throws IOException, SearchClientException {
 
         ArrayBlockingQueue<Set<TokenDF>> queue = new ArrayBlockingQueue<>(100);
         List<ReAnalyzer> reAnalyzers = new ArrayList<>();

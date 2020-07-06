@@ -46,6 +46,7 @@
         <module>quaerite-analysis</module>
         <module>quaerite-solr-tools</module>
         <module>quaerite-logs</module>
+<!--        <module>quaerite-duplicates</module>-->
     </modules>
 
 </project>
