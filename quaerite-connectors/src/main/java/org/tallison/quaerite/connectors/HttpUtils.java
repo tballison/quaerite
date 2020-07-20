@@ -71,7 +71,7 @@ public class HttpUtils {
         HttpHost target = new HttpHost(uri.getHost(), uri.getPort(), uri.getScheme());
         HttpGet httpGet = null;
         try {
-            String get = uri.getPath();
+            String get = uri.getRawPath();
             if (!StringUtils.isBlank(uri.getQuery())) {
                 get += "?" + uri.getRawQuery();
             }
