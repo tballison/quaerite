@@ -311,8 +311,8 @@ public class ESClient extends SearchClient {
         return overallMap;
     }
 
-    void trackTotalHits(Map<String, Object> map, boolean b) {
-        map.put("track_total_hits", false);
+    void trackTotalHits(Map<String, Object> map, boolean trackTotalHits) {
+        map.put("track_total_hits", trackTotalHits);
     }
 
     BooleanClause.OCCUR getFilterOccur() {

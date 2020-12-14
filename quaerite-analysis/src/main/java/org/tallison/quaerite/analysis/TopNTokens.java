@@ -17,6 +17,11 @@
 package org.tallison.quaerite.analysis;
 
 
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -34,10 +39,10 @@ import org.tallison.quaerite.core.stats.TokenDF;
 import org.tallison.quaerite.core.stats.TokenDFTF;
 
 
-
 public class TopNTokens {
 
     static Options OPTIONS = new Options();
+
     static {
         OPTIONS.addOption(
                 Option.builder("s")
@@ -61,7 +66,13 @@ public class TopNTokens {
                 .longOpt("minDF")
                 .hasArg(true)
                 .required()
-                .desc("minimum document frequencey").build()
+                .desc("minimum document frequency").build()
+        );
+        OPTIONS.addOption(Option.builder("o")
+                .longOpt("output")
+                .hasArg(true)
+                .required()
+                .desc("file to which to write results").build()
         );
     }
 
@@ -83,23 +94,23 @@ public class TopNTokens {
         int n = Integer.parseInt(commandLine.getOptionValue("n"));
 
         String lower = "";
-        int termSetSize = 10000;
+        int termSetSize = 100000;
         int minDF = Integer.parseInt(commandLine.getOptionValue("m"));
         long uniqueTerms = 0;
         long totalTermCount = 0;
         PriorityQueue<TokenDF> queue = new PriorityQueue<>(n, new DFComparator());
 
         int scanned = 0;
-        int maxScanned = 100000;
+        int maxScanned = -1;//100000;
         boolean hitMax = false;
-        while (! hitMax) {
+        while (!hitMax) {
             List<TokenDF> terms = client.getTerms(field, lower,
                     termSetSize, minDF, true);
             for (TokenDF tdf : terms) {
                 add(tdf, queue, n);
                 totalTermCount += ((TokenDFTF) tdf).getTf();
                 uniqueTerms++;
-                if (scanned++ > maxScanned) {
+                if (maxScanned > 0 && scanned++ > maxScanned) {
                     hitMax = true;
                     break;
                 }
@@ -110,8 +121,6 @@ public class TopNTokens {
 
             lower = terms.get(terms.size() - 1).getToken();
         }
-        System.out.println("unique terms: " + uniqueTerms);
-        System.out.println("total tokens: " + totalTermCount);
 
         //priority queue is sorted from head which is the "least common"
         //we have to flip it to get descending order.
@@ -119,11 +128,35 @@ public class TopNTokens {
         while (! queue.isEmpty()) {
             tokens.add(queue.remove());
         }
+        if (commandLine.hasOption("o")) {
+            writeResults(commandLine.getOptionValue("o"), uniqueTerms, totalTermCount, tokens);
+        }
+        System.out.println("unique terms: " + uniqueTerms);
+        System.out.println("total tokens: " + totalTermCount);
 
         for (int i = tokens.size() - 1; i >= 0; i--) {
             TokenDF tdf = tokens.get(i);
             System.out.println(tdf.getToken().replaceAll("\t", " ")
                     + "\t" + tdf.getDf());
+        }
+
+    }
+
+    private static void writeResults(String outputPath,
+                                     long uniqueTerms, long totalTermCount,
+                                     List<TokenDF> tokens) throws IOException {
+        try (BufferedWriter writer = Files.newBufferedWriter(
+                Paths.get(outputPath), StandardCharsets.UTF_8)) {
+            writer.write("unique terms: " + uniqueTerms);
+            writer.newLine();
+            writer.write("total tokens: " + totalTermCount);
+            writer.newLine();
+            for (int i = tokens.size() - 1; i >= 0; i--) {
+                TokenDF tdf = tokens.get(i);
+                writer.write(tdf.getToken().replaceAll("\t", " ")
+                        + "\t" + tdf.getDf());
+                writer.newLine();
+            }
         }
     }
 
