@@ -122,6 +122,62 @@ public class ESClient extends SearchClient {
         return getResultSet(root, start);
     }
 
+    public long getDF(String field, String term)
+            throws IOException, SearchClientException {
+        Query q = new TermQuery(field, term);
+        QueryRequest r = new QueryRequest(q);
+        r.setNumResults(0);
+        SearchResultSet results = search(r);
+        return results.getTotalHits();
+    }
+    public List<TokenDF> suggest(String field, String term,
+                                 int maxEdits, int numResults) throws SearchClientException, IOException {
+        JsonObject termQuery = new JsonObject();
+        termQuery.add("field", new JsonPrimitive(field));
+        termQuery.add("suggest_mode", new JsonPrimitive("always"));
+        termQuery.add("sort", new JsonPrimitive("frequency"));
+        termQuery.add("size", new JsonPrimitive(numResults));
+        termQuery.add("max_edits", new JsonPrimitive(maxEdits));
+        termQuery.add("min_word_length", new JsonPrimitive(2));
+        termQuery.add("max_term_freq", new JsonPrimitive(Integer.MAX_VALUE));
+
+        JsonObject mySuggest = new JsonObject();
+        mySuggest.add("text", new JsonPrimitive(term));
+        mySuggest.add("term", termQuery);
+
+        JsonObject overallSuggest = new JsonObject();
+
+        overallSuggest.add("my_suggest", mySuggest);
+
+        JsonObject query = new JsonObject();
+        query.add("suggest", overallSuggest);
+        query.add("_source", new JsonPrimitive(false));
+
+        String endpoint = url + "_search";
+        JsonResponse response = postJson(endpoint, query.toString().toString());
+        if (response.getStatus() != 200) {
+            throw new SearchClientException(response.getMsg()
+                    + "\nfor " + query.toString());
+        }
+        JsonElement root = response.getJson();
+        return getSuggest(root.getAsJsonObject());
+    }
+
+    private List<TokenDF> getSuggest(JsonObject root) {
+        List<TokenDF> ret = new ArrayList<>();
+        JsonObject firstToken = root.getAsJsonObject("suggest")
+                .getAsJsonArray("my_suggest").get(0)
+                .getAsJsonObject();
+        JsonArray options = firstToken.getAsJsonArray("options");
+        for (JsonElement option : options) {
+            JsonObject optionObject = option.getAsJsonObject();
+            String token = optionObject.get("text").getAsString();
+            int df = optionObject.get("freq").getAsInt();
+            ret.add(new TokenDF(token, df));
+        }
+        return ret;
+    }
+
     /**
      * for custom debugging/one-off kinds of things
      *

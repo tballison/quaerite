@@ -19,9 +19,12 @@ package org.tallison.quaerite.connectors;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -50,6 +53,7 @@ import org.tallison.quaerite.core.queries.MoreLikeThisQuery;
 import org.tallison.quaerite.core.queries.MultiMatchQuery;
 import org.tallison.quaerite.core.queries.Query;
 import org.tallison.quaerite.core.queries.TermQuery;
+import org.tallison.quaerite.core.stats.TokenDF;
 
 /**
  * This class needs the tmdb collection up and running.
@@ -374,8 +378,8 @@ public class TestESClient {
         searchClient.deleteAll();
     }
 
-    @Disabled("for development")
     @Test
+    @Disabled("for development")
     public void testRaw() throws Exception {
         String json =
                 "{\n" +
@@ -403,5 +407,67 @@ public class TestESClient {
         String url = TMDB_URL + "/_search";
         JsonResponse r = searchClient.postJson(url, json);
         System.out.println(r);
+    }
+
+    @Test
+    //@Disabled("for development only")
+    public void getSpellingVariantsForCommonTerms() throws Exception {
+        String url = "SPECIFY YOUR URL HERE";
+        ESClient client = (ESClient) SearchClientFactory.getClient(url);
+        String facetField = "FACET_FIELD";
+        String field = "SUGGEST_FIELD";
+        List<TokenDF> terms = getTopN(client, facetField, 100);
+
+        for (TokenDF term : terms) {
+            if (term.getToken().length() < 4) {
+                continue;
+            }
+            int maxEdits = 2;
+            if (term.getToken().length() < 6) {
+                maxEdits = 1;
+            }
+            List<TokenDF> tokenDFs = client.suggest(field,
+                    term.getToken(), maxEdits, 200);
+            tokenDFs.add(new TokenDF(term.getToken(),
+                    client.getDF(field, term.getToken())));
+            Collections.sort(tokenDFs, new Comparator<TokenDF>() {
+                @Override
+                public int compare(TokenDF o1, TokenDF o2) {
+                    return o2.getDf() == o1.getDf() ?
+                            o2.getToken().compareTo(o1.getToken()) :
+                            Long.compare(o2.getDf(), o1.getDf());
+                }
+            });
+            int i = 0;
+            System.out.println(term.getToken() + " " + term.getDf());
+            for (TokenDF t : tokenDFs) {
+                System.out.println("\t" +
+                        t.getToken() + "\t" +
+                        client.getDF(field, t.getToken()));
+            }
+            System.out.println("");
+        }
+    }
+
+    private List<TokenDF> getTopN(ESClient client, String field, int i)
+            throws IOException, SearchClientException {
+        QueryRequest r = new QueryRequest(new MatchAllDocsQuery());
+        r.setFacetField(field);
+        r.setFacetLimit(i);
+        r.setNumResults(0);
+        FacetResult result = client.facet(r);
+        List<TokenDF> tokens = new ArrayList<>();
+        for (Map.Entry<String, Long> e : result.getFacetCounts().entrySet()) {
+            tokens.add(new TokenDF(e.getKey(), e.getValue()));
+        }
+        Collections.sort(tokens, new Comparator<TokenDF>() {
+            @Override
+            public int compare(TokenDF o1, TokenDF o2) {
+                return o2.getDf() == o1.getDf() ?
+                        o2.getToken().compareTo(o1.getToken()) :
+                        Long.compare(o2.getDf(), o1.getDf());
+            }
+        });
+        return tokens;
     }
 }
