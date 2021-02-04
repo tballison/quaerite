@@ -23,7 +23,17 @@ import org.h2.tools.Console;
 
 public class QuaeriteCLI {
 
+    public static void usage() {
+        System.err.println("Specify a tool: \n" +
+                "\tRunExperiments, GenerateExperiments,\n" +
+                "\tRunGA, DumpExperiments, DumpResults,\n" +
+                "\tFindFeatures or StartDB");
+        System.exit(1);
+    }
     public static void main(String[] args) throws Exception {
+        if (args.length == 0) {
+            usage();
+        }
         String tool = args[0];
         String[] newArgs = new String[args.length - 1];
         System.arraycopy(args, 1, newArgs, 0, newArgs.length);
