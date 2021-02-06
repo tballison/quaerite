@@ -71,7 +71,7 @@ public class HttpUtils {
         HttpHost target = new HttpHost(uri.getHost(), uri.getPort(), uri.getScheme());
         HttpGet httpGet = null;
         try {
-            String get = uri.getPath();
+            String get = uri.getRawPath();
             if (!StringUtils.isBlank(uri.getQuery())) {
                 get += "?" + uri.getRawQuery();
             }
@@ -106,7 +106,13 @@ public class HttpUtils {
     }
 
     public static HttpClient getClient(String url,
-                                       String username, String password)
+                                       String username, String password) throws SearchClientException {
+        return getClient(url, username, password, getDefaultKeepAliveStrategy());
+    }
+
+    public static HttpClient getClient(String url,
+                                       String username, String password,
+                                       ConnectionKeepAliveStrategy connectionKeepAliveStrategy)
             throws SearchClientException {
 
         String scheme = null;
@@ -117,19 +123,19 @@ public class HttpUtils {
         }
         if (scheme.endsWith("s")) {
             try {
-                return httpClientTrustingAllSSLCerts2(username, password);
+                return httpClientTrustingAllSSLCerts2(username, password, connectionKeepAliveStrategy);
             } catch (NoSuchAlgorithmException | KeyManagementException | KeyStoreException e) {
                 throw new SearchClientException(e);
             }
         } else if (username != null && password != null) {
             CredentialsProvider provider = getProvider(username, password);
             return HttpClientBuilder.create()
-                    .setKeepAliveStrategy(getDefaultKeepAliveStrategy())
+                    .setKeepAliveStrategy(connectionKeepAliveStrategy)
                     .setDefaultCredentialsProvider(provider)
                     .build();
         } else {
             return HttpClientBuilder.create()
-                    .setKeepAliveStrategy(getDefaultKeepAliveStrategy())
+                    .setKeepAliveStrategy(connectionKeepAliveStrategy)
                     .build();
         }
     }
@@ -140,7 +146,8 @@ public class HttpUtils {
     }
 
     private static HttpClient httpClientTrustingAllSSLCerts2(String username,
-                                                             String password)
+                                                             String password,
+                                                             ConnectionKeepAliveStrategy keepAliveStrategy)
             throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException {
         LOG.warn("quaerite currently uses a non-secure 'trustall' client for https." +
                 " If you require actual security, please open a ticket " +
@@ -162,14 +169,14 @@ public class HttpUtils {
                 new BasicHttpClientConnectionManager(socketFactoryRegistry);
         if (provider == null) {
             return HttpClients.custom()
-                    .setKeepAliveStrategy(getDefaultKeepAliveStrategy())
+                    .setKeepAliveStrategy(keepAliveStrategy)
                     .setSSLSocketFactory(sslsf)
                     .setConnectionManager(connectionManager)
                     .setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE).build();
 
         } else {
             return HttpClients.custom()
-                    .setKeepAliveStrategy(getDefaultKeepAliveStrategy())
+                    .setKeepAliveStrategy(keepAliveStrategy)
                     .setSSLSocketFactory(sslsf)
                     .setConnectionManager(connectionManager)
                     .setDefaultCredentialsProvider(provider)
@@ -201,8 +208,12 @@ public class HttpUtils {
     }
 
     //if no keep-alive header is found or a bad value is present,
-    // keep alive for only 5 seconds!
+    // keep alive for only 1 second!
     private static ConnectionKeepAliveStrategy getDefaultKeepAliveStrategy() {
+        return getKeepAliveStrategy(1);
+    }
+
+    public static ConnectionKeepAliveStrategy getKeepAliveStrategy(int seconds) {
         return new ConnectionKeepAliveStrategy() {
 
             public long getKeepAliveDuration(HttpResponse response, HttpContext context) {
@@ -221,10 +232,8 @@ public class HttpUtils {
                         }
                     }
                 }
-                return 5 * 1000;
+                return seconds * 1000;
             }
-
         };
     }
-
 }

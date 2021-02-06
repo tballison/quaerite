@@ -55,6 +55,7 @@ import org.apache.log4j.Logger;
 import org.tallison.quaerite.connectors.SearchClient;
 import org.tallison.quaerite.connectors.SearchClientException;
 import org.tallison.quaerite.connectors.SearchClientFactory;
+import org.tallison.quaerite.core.ServerConnection;
 import org.tallison.quaerite.core.stats.TokenDF;
 import org.tallison.quaerite.core.util.CommandLineUtil;
 import org.tallison.quaerite.core.util.MapUtil;
@@ -68,6 +69,7 @@ public class CompareAnalyzers {
     private static int DEFAULT_MIN_DF = 1;
 
     static {
+        //TODO -- add username and password for basic auth
         OPTIONS.addOption(
                 Option.builder("s")
                         .hasArg()
@@ -141,7 +143,7 @@ public class CompareAnalyzers {
                     OPTIONS);
             return;
         }
-        SearchClient client = SearchClientFactory.getClient(commandLine.getOptionValue("s"));
+        ServerConnection serverConnection = new ServerConnection(commandLine.getOptionValue("s"));
 
         CompareAnalyzers compareAnalyzers = new CompareAnalyzers();
         int minSetSize = getInt(commandLine, "minSetSize", DEFAULT_MIN_SET_SIZE);
@@ -158,7 +160,8 @@ public class CompareAnalyzers {
             targetTokens = ConcurrentHashMap.newKeySet();
             queryTokenPairs = loadQueries(
                     CommandLineUtil.getPath(commandLine, "q", true),
-                    client, baseField, filteredField);
+                    SearchClientFactory.getClient(serverConnection),
+                    baseField, filteredField);
             for (QueryTokenPair p : queryTokenPairs) {
                 targetTokens.addAll(p.getTokens());
             }
@@ -169,7 +172,7 @@ public class CompareAnalyzers {
         compareAnalyzers.setTargetTokens(targetTokens);
 
         Map<String, EquivalenceSet> map = compareAnalyzers.compare(
-                client,
+                serverConnection,
                 baseField,
                 filteredField, minDF);
 
@@ -293,20 +296,23 @@ public class CompareAnalyzers {
         this.numThreads = numThreads;
     }
 
-    public Map<String, EquivalenceSet> compare(SearchClient client,
+    public Map<String, EquivalenceSet> compare(ServerConnection clientConnection,
                                                String baseField,
-                                               String filteredField, int minDF) {
+                                               String filteredField, int minDF)
+            throws IOException, SearchClientException {
 
         ArrayBlockingQueue<Set<TokenDF>> queue = new ArrayBlockingQueue<>(100);
         List<ReAnalyzer> reAnalyzers = new ArrayList<>();
         for (int i = 0; i < numThreads; i++) {
-            reAnalyzers.add(new ReAnalyzer(queue, client, filteredField));
+            reAnalyzers.add(new ReAnalyzer(queue,
+                    SearchClientFactory.getClient(clientConnection), filteredField));
         }
 
         ExecutorService executorService = Executors.newFixedThreadPool(numThreads + 1);
         ExecutorCompletionService<Integer> completionService =
                 new ExecutorCompletionService<>(executorService);
-        completionService.submit(new TermGetter(queue, numThreads, client, baseField, minDF));
+        completionService.submit(new TermGetter(queue, numThreads,
+                SearchClientFactory.getClient(clientConnection), baseField, minDF));
         for (int i = 0; i < numThreads; i++) {
             completionService.submit(reAnalyzers.get(i));
         }

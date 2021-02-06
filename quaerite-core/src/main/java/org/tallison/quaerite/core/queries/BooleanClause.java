@@ -71,7 +71,7 @@ public class BooleanClause {
 
     public BooleanClause deepCopy() {
         return new BooleanClause(getOccur(),
-                (SingleStringQuery)query.deepCopy());
+                (Query)query.deepCopy());
     }
 
 

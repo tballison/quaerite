@@ -95,4 +95,23 @@ public class TestESExamples {
             );
         }
     }
+
+    @Test
+    //@Disabled
+    public void testOneOff() throws Exception {
+        Path cwd = Paths.get("/Users/allison/Documents/STEI/experiments");
+        Path experiments = cwd.resolve("experiments.json");
+        Path judgments = cwd.resolve("jsearch-truth.csv");
+
+        RunExperiments.main(
+                new String[]{
+                        "-db", cwd.resolve("ex-db").toAbsolutePath().toString(),
+                        "-e", experiments.toAbsolutePath().toString(),
+                        "-j", judgments.toAbsolutePath().toString(),
+                        "-r", cwd.resolve("reports").toAbsolutePath().toString()
+                }
+        );
+    }
+
+
 }

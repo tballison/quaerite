@@ -17,6 +17,8 @@
 package org.tallison.quaerite.connectors;
 
 import java.io.IOException;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -120,6 +122,62 @@ public class ESClient extends SearchClient {
         return getResultSet(root, start);
     }
 
+    public long getDF(String field, String term)
+            throws IOException, SearchClientException {
+        Query q = new TermQuery(field, term);
+        QueryRequest r = new QueryRequest(q);
+        r.setNumResults(0);
+        SearchResultSet results = search(r);
+        return results.getTotalHits();
+    }
+    public List<TokenDF> suggest(String field, String term,
+                                 int maxEdits, int numResults) throws SearchClientException, IOException {
+        JsonObject termQuery = new JsonObject();
+        termQuery.add("field", new JsonPrimitive(field));
+        termQuery.add("suggest_mode", new JsonPrimitive("always"));
+        termQuery.add("sort", new JsonPrimitive("frequency"));
+        termQuery.add("size", new JsonPrimitive(numResults));
+        termQuery.add("max_edits", new JsonPrimitive(maxEdits));
+        termQuery.add("min_word_length", new JsonPrimitive(2));
+        termQuery.add("max_term_freq", new JsonPrimitive(Integer.MAX_VALUE));
+
+        JsonObject mySuggest = new JsonObject();
+        mySuggest.add("text", new JsonPrimitive(term));
+        mySuggest.add("term", termQuery);
+
+        JsonObject overallSuggest = new JsonObject();
+
+        overallSuggest.add("my_suggest", mySuggest);
+
+        JsonObject query = new JsonObject();
+        query.add("suggest", overallSuggest);
+        query.add("_source", new JsonPrimitive(false));
+
+        String endpoint = url + "_search";
+        JsonResponse response = postJson(endpoint, query.toString().toString());
+        if (response.getStatus() != 200) {
+            throw new SearchClientException(response.getMsg()
+                    + "\nfor " + query.toString());
+        }
+        JsonElement root = response.getJson();
+        return getSuggest(root.getAsJsonObject());
+    }
+
+    private List<TokenDF> getSuggest(JsonObject root) {
+        List<TokenDF> ret = new ArrayList<>();
+        JsonObject firstToken = root.getAsJsonObject("suggest")
+                .getAsJsonArray("my_suggest").get(0)
+                .getAsJsonObject();
+        JsonArray options = firstToken.getAsJsonArray("options");
+        for (JsonElement option : options) {
+            JsonObject optionObject = option.getAsJsonObject();
+            String token = optionObject.get("text").getAsString();
+            int df = optionObject.get("freq").getAsInt();
+            ret.add(new TokenDF(token, df));
+        }
+        return ret;
+    }
+
     /**
      * for custom debugging/one-off kinds of things
      *
@@ -138,13 +196,44 @@ public class ESClient extends SearchClient {
     public SearchResultSet startScroll(QueryRequest query, int size, int minutesAlive)
             throws SearchClientException, IOException {
         long start = System.currentTimeMillis();
-        Map<String, Object> queryMap = getQueryMap(query, Collections.EMPTY_LIST);
+        Map<String, Object> queryMap = getQueryMap(query, query.getFieldsToRetrieve());
         if (query.getSortField() != null) {
             Map<String, String> sort = new HashMap<>();
             sort.put(query.getSortField(), query.getSortOrder().name().toLowerCase(Locale.US));
             queryMap.put("sort", Collections.singletonList(sort));
         }
         queryMap.put("size", size);
+        String jsonQuery = GSON.toJson(queryMap);
+        //System.out.println(jsonQuery);
+        JsonResponse json = postJson(url +
+                "_search?scroll=" + minutesAlive + "m", jsonQuery);
+        if (json.getStatus() != 200) {
+            throw new SearchClientException(json.getMsg() + "\nfor " + jsonQuery);
+        }
+        JsonElement root = json.getJson();
+        String scrollId = root.getAsJsonObject().get("_scroll_id").getAsString();
+
+        SearchResultSet resultSet = getResultSet(root, start);
+        resultSet.setScrollId(scrollId);
+        return resultSet;
+    }
+
+    public SearchResultSet startSlicedScroll(QueryRequest query, int size,
+                                             int minutesAlive, int id, int max)
+            throws SearchClientException, IOException {
+        long start = System.currentTimeMillis();
+        Map<String, Object> queryMap = getQueryMap(query, query.getFieldsToRetrieve());
+        if (query.getSortField() != null) {
+            Map<String, String> sort = new HashMap<>();
+            sort.put(query.getSortField(), query.getSortOrder().name().toLowerCase(Locale.US));
+            queryMap.put("sort", Collections.singletonList(sort));
+        }
+        queryMap.put("size", size);
+
+        Map<String, Integer> sliceMap = new HashMap<>();
+        sliceMap.put("id", id);
+        sliceMap.put("max", max);
+        queryMap.put("slice", sliceMap);
         String jsonQuery = GSON.toJson(queryMap);
         //System.out.println(jsonQuery);
         JsonResponse json = postJson(url +
@@ -178,6 +267,31 @@ public class ESClient extends SearchClient {
         return getResultSet(root, start);
     }
 
+    public Map<String, Integer> getTermVectors(String id, String field)
+            throws IOException, SearchClientException {
+        String endpoint = url + "_termvectors/" +
+                encode(id) + "?fields=" + encode(field);
+        JsonResponse json = getJson(endpoint);
+        if (json.getStatus() != 200) {
+            throw new SearchClientException(json.getMsg());
+        }
+
+        Map<String, Integer> termVectors = new HashMap<>();
+        JsonElement root = json.getJson();
+        JsonObject fields = root.getAsJsonObject().getAsJsonObject("term_vectors");
+        if (fields == null || fields.get(field) == null) {
+            return termVectors;
+        }
+        JsonObject fieldEl = fields.get(field).getAsJsonObject();
+        JsonObject terms = fieldEl.getAsJsonObject("terms");
+        for (String k : terms.keySet()) {
+            JsonObject stats = terms.getAsJsonObject(k);
+            int tf = stats.get("term_freq").getAsInt();
+            termVectors.put(k, tf);
+        }
+        return termVectors;
+    }
+
     private SearchResultSet getResultSet(JsonElement root, long start)
             throws IOException, SearchClientException {
         long queryTime = JsonUtil.getPrimitive(root, "took", -1l);
@@ -191,13 +305,18 @@ public class ESClient extends SearchClient {
     }
 
     protected long getTotalHits(JsonObject hits) {
-        JsonObject total = hits.getAsJsonObject("total");
-        long val = total.get("value").getAsJsonPrimitive().getAsLong();
-        String rel = total.get("relation").getAsString();
-        if (!rel.equals("eq")) {
-            LOG.warn("totalhits may not be accurate: " + total.toString());
+        if (hits.has("total")) {
+            JsonObject total = hits.getAsJsonObject("total");
+            long val = total.get("value").getAsJsonPrimitive().getAsLong();
+            String rel = total.get("relation").getAsString();
+            if (!rel.equals("eq")) {
+                LOG.warn("totalhits may not be accurate: " + total.toString());
+            }
+            return val;
+        } else {
+            JsonArray hitArr = hits.getAsJsonArray("hits");
+            return hitArr.size();
         }
-        return val;
     }
 
     private String buildJsonQuery(QueryRequest query, List<String> fieldsToRetrieve)
@@ -240,6 +359,7 @@ public class ESClient extends SearchClient {
             overallMap.put("from", queryRequest.getStart());
             trackTotalHits(overallMap, true);
             if (fieldsToRetrieve.size() > 0) {
+                //stored_fields?!
                 overallMap.put("_source", fieldsToRetrieve);
             }
         }
@@ -247,8 +367,8 @@ public class ESClient extends SearchClient {
         return overallMap;
     }
 
-    void trackTotalHits(Map<String, Object> map, boolean b) {
-        map.put("track_total_hits", true);
+    void trackTotalHits(Map<String, Object> map, boolean trackTotalHits) {
+        map.put("track_total_hits", trackTotalHits);
     }
 
     BooleanClause.OCCUR getFilterOccur() {
@@ -336,6 +456,8 @@ public class ESClient extends SearchClient {
         }
         queryMap.put("min_word_length", query.getMinWordLength().getValue());
         queryMap.put("max_word_length", query.getMaxWordLength().getValue());
+
+        addQueryOperator(query.getQueryOperator(), queryMap);
         return wrapAMap("more_like_this", queryMap);
     }
 
@@ -367,6 +489,18 @@ public class ESClient extends SearchClient {
                 queryMap.put(occur.toString().toLowerCase(Locale.US), clauses);
             }
         }
+        if (bq.getMinShouldMatch() != null) {
+            Float msm = bq.getMinShouldMatch();
+            String msmString = "";
+            DecimalFormat df = new DecimalFormat("#",
+                    new DecimalFormatSymbols(Locale.US));
+            if (msm < 1.0f) {
+                msmString = df.format(msm * 100f) + "%";
+            } else {
+                msmString = df.format(msm);
+            }
+            queryMap.put("minimum_should_match", msmString);
+        }
         return wrapAMap("bool", queryMap);
     }
 
@@ -389,23 +523,30 @@ public class ESClient extends SearchClient {
         if (!"phrase".equals(type) && !"cross_fields".equals(type)) {
             queryMap.put("fuzziness", query.getFuzziness().getFeature());
         }
-        QueryOperator qop = query.getQueryOperator();
-        if (qop.getOperator().equals(QueryOperator.OPERATOR.AND)) {
+        addQueryOperator(query.getQueryOperator(), queryMap);
+
+        return wrapAMap("multi_match", queryMap);
+    }
+
+    private void addQueryOperator(QueryOperator queryOperator, Map<String, Object> queryMap) {
+        if (queryOperator == null) {
+            return;
+        }
+        if (queryOperator.getOperator().equals(QueryOperator.OPERATOR.AND)) {
             queryMap.put("operator", "and");
-        } else if (qop.getOperator().equals(QueryOperator.OPERATOR.OR)) {
-            if (qop.getMM() == QueryOperator.MM.NONE) {
+        } else if (queryOperator.getOperator().equals(QueryOperator.OPERATOR.OR)) {
+            if (queryOperator.getMM() == QueryOperator.MM.NONE) {
                 queryMap.put("operator", "or");
-            } else if (qop.getMM() == QueryOperator.MM.INTEGER) {
-                queryMap.put("minimum_should_match", Integer.toString(qop.getInt()));
-            } else if (qop.getMM() == QueryOperator.MM.FLOAT) {
+            } else if (queryOperator.getMM() == QueryOperator.MM.INTEGER) {
+                queryMap.put("minimum_should_match", Integer.toString(queryOperator.getInt()));
+            } else if (queryOperator.getMM() == QueryOperator.MM.FLOAT) {
                 queryMap.put("minimum_should_match",
                         String.format(Locale.US,
                                 "%.0f%s",
-                                qop.getMmFloat() * 100f, "%"));
+                                queryOperator.getMmFloat() * 100f, "%"));
             }
         }
 
-        return wrapAMap("multi_match", queryMap);
     }
 
     @Override
@@ -462,6 +603,7 @@ public class ESClient extends SearchClient {
             sb.append(indexJson).append("\n");
             sb.append(GSON.toJson(fields)).append("\n");
         }
+        //System.out.println(sb.toString());
         JsonResponse response = postJson(url + "/_bulk", sb.toString());
         if (response.getStatus() != 200) {
             throw new SearchClientException(response.getMsg());

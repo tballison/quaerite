@@ -48,6 +48,14 @@ import org.tallison.quaerite.core.StoredDocument;
 import org.tallison.quaerite.core.queries.Query;
 import org.tallison.quaerite.core.stats.TokenDF;
 
+/**
+ * SearchClient represents the basic functionality of a search client.
+ * <p>
+ * For simplicity with the underlying httpclient, concrete classes
+ * of SearchClient should not be considered thread safe and must
+ * be created for each thread.
+ * </p>
+ */
 public abstract class SearchClient implements Closeable {
 
     public abstract SearchResultSet search(QueryRequest query)
@@ -59,7 +67,6 @@ public abstract class SearchClient implements Closeable {
     static Logger LOG = Logger.getLogger(SearchClient.class);
 
     private final HttpClient httpClient;
-    private final JsonParser parser = new JsonParser();
 
     public SearchClient(HttpClient httpClient) {
         this.httpClient = httpClient;
@@ -69,13 +76,15 @@ public abstract class SearchClient implements Closeable {
     protected byte[] getUrl(String url) throws SearchClientException {
         return HttpUtils.get(httpClient, url);
     }
+
     protected JsonResponse postJson(String url, String json) throws IOException {
         HttpPost httpRequest = new HttpPost(url);
         ByteArrayEntity entity = new ByteArrayEntity(json.getBytes(StandardCharsets.UTF_8));
         httpRequest.setEntity(entity);
         httpRequest.setHeader("Accept", "application/json");
         httpRequest.setHeader("Content-type", "application/json; charset=utf-8");
-        //this was required because of connection already bound exceptions on windows :(
+        //At one point, this was required because of connection already
+        // bound exceptions on windows :(
         //httpPost.setHeader("Connection", "close");
 
         //try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
@@ -88,7 +97,7 @@ public abstract class SearchClient implements Closeable {
                 try (Reader reader = new BufferedReader(
                         new InputStreamReader(response.getEntity().getContent(),
                                 StandardCharsets.UTF_8))) {
-                    JsonElement element = parser.parse(reader);
+                    JsonElement element = JsonParser.parseReader(reader);
                     if (LOG.isTraceEnabled()) {
                         LOG.trace(element);
                     }
@@ -168,7 +177,7 @@ public abstract class SearchClient implements Closeable {
         try (Reader reader = new BufferedReader(
                 new InputStreamReader(new ByteArrayInputStream(bytes),
                         StandardCharsets.UTF_8))) {
-            return new JsonResponse(200, parser.parse(reader));
+            return new JsonResponse(200, JsonParser.parseReader(reader));
         }
     }
 

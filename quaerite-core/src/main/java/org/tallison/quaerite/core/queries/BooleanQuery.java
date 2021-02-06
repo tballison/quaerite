@@ -29,6 +29,7 @@ public class BooleanQuery extends Query {
 
     List<BooleanClause> clauses = new ArrayList<>();
 
+    Float minShouldMatch = null;
 
     public void addClause(BooleanClause clause) {
         clauses.add(clause);
@@ -45,9 +46,17 @@ public class BooleanQuery extends Query {
         for (BooleanClause c : clauses) {
             bq.addClause(c.deepCopy());
         }
+        bq.setMinShouldMatch(getMinShouldMatch());
         return bq;
     }
 
+    public void setMinShouldMatch(Float minShouldMatch) {
+        this.minShouldMatch = minShouldMatch;
+    }
+
+    public Float getMinShouldMatch() {
+        return minShouldMatch;
+    }
     /**
      * This updates each clause with the appropriate query string.
      *
