@@ -44,8 +44,8 @@ import org.tallison.quaerite.db.ExperimentDB;
 
 class QueryLoader {
 
-    private static final String QUERY_SET = "querySet";
-    private static final String QUERY_ID = "queryId";
+    private static final String QUERY_SET = "queryset";
+    private static final String QUERY_ID = "queryid";
     private static final String DOCUMENT_ID = "docid";
     private static final String RELEVANCE = "rating";
     private static final String COUNT = "count";
