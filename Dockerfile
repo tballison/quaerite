@@ -21,7 +21,7 @@ WORKDIR /usr/src/app
 RUN mvn install
 
 FROM adoptopenjdk/openjdk11:alpine-slim
-COPY --from=QUAERITE_BUILDER /usr/src/app/quaerite-cli/target/quaerite-cli-1.0.0-SNAPSHOT.jar /quaerite.jar
+COPY --from=QUAERITE_BUILDER /usr/src/app/quaerite-cli/target/quaerite-cli-1.0.0.jar /quaerite.jar
 
 #for windows pwd: -v %cd%:
 #docker run -v $(pwd):/config -it quaerite-image java -jar /quaerite.jar RunExperiments
