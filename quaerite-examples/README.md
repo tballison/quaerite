@@ -281,3 +281,13 @@ And enter the full path for the `.mv.db` file (without the file suffix): `jdbc:h
 **NOTE:** The Genetic Algorithm exports all experiments (including all parameters) to the `-o output` directory.
 If there is any need/interest for any of the code to output more diagnostics
 and/or logging, please open a ticket.
+
+test `this is a $test`
+
+test1 `this is a $$test`
+
+test2 `this is a \$test`
+
+test3 ```this is a `$test` ```
+
+test4 this is a '$'test `
