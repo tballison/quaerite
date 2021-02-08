@@ -19,12 +19,15 @@ package org.tallison.quaerite.core.scorers;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.log4j.Logger;
 import org.tallison.quaerite.core.Judgments;
 import org.tallison.quaerite.core.SearchResultSet;
 import org.tallison.quaerite.core.StoredDocument;
 
 
 public class NDCG extends DiscountedCumulativeGain2002 {
+
+    static Logger LOG = Logger.getLogger(NDCG.class);
 
     public NDCG(int atN) {
         super("ndcg", atN);
@@ -38,7 +41,9 @@ public class NDCG extends DiscountedCumulativeGain2002 {
                 searchResultSet.getQueryTime(),
                 searchResultSet.getElapsedTime());
         if (idealDCG == 0) {
-            return 0.0;
+            LOG.warn("IdealDCG == 0: (NDCG@" + getAtN() + "): " + judgments.getQueryStrings());
+            addScore(judgments.getQueryInfo(), ERROR_VALUE);
+            return ERROR_VALUE;
         }
         double score = _score(judgments, searchResultSet) / idealDCG;
         addScore(judgments.getQueryInfo(), score);

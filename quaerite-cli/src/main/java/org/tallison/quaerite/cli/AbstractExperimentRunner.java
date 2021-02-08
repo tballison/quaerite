@@ -57,6 +57,7 @@ import org.tallison.quaerite.core.Judgments;
 import org.tallison.quaerite.core.QueryInfo;
 import org.tallison.quaerite.core.QueryStrings;
 import org.tallison.quaerite.core.SearchResultSet;
+import org.tallison.quaerite.core.features.CustomHandler;
 import org.tallison.quaerite.core.queries.Query;
 import org.tallison.quaerite.core.queries.TermsQuery;
 import org.tallison.quaerite.core.scorers.AbstractJudgmentScorer;
@@ -118,7 +119,10 @@ public abstract class AbstractExperimentRunner extends AbstractCLI {
                 experiment.getServerConnection() +
                         "_" + judgmentListId);
         if (validated == null) {
-            validated = validate(searchClient, judgmentList, experimentConfig.getSleep());
+
+            validated = validate(searchClient, experiment.getCustomHandler(),
+                    judgmentList,
+                    experimentConfig.getSleep());
             searchServerValidatedMap.put(experiment.getServerConnection()
                     + "_" + judgmentListId, validated);
         }
@@ -239,7 +243,7 @@ public abstract class AbstractExperimentRunner extends AbstractCLI {
      * @param judgmentList
      * @return
      */
-    private JudgmentList validate(SearchClient searchClient,
+    private JudgmentList validate(SearchClient searchClient, CustomHandler customHandler,
                                   JudgmentList judgmentList, long sleep)
             throws IOException, SearchClientException {
         String idField = searchClient.getIdField(experimentConfig);
@@ -256,7 +260,7 @@ public abstract class AbstractExperimentRunner extends AbstractCLI {
             ids.add(id);
             len += id.length();
             if (len > 1000) {
-                addValid(new TermsQuery(idField, ids),
+                addValid(new TermsQuery(idField, ids), customHandler,
                         idField, searchClient, ids.size(), valid);
                 len = 0;
                 ids.clear();
@@ -270,7 +274,7 @@ public abstract class AbstractExperimentRunner extends AbstractCLI {
             }
         }
         if (ids.size() > 0) {
-            addValid(new TermsQuery(idField, ids),
+            addValid(new TermsQuery(idField, ids), customHandler,
                     idField, searchClient, ids.size(), valid);
         }
 
@@ -280,7 +284,7 @@ public abstract class AbstractExperimentRunner extends AbstractCLI {
             for (String id : judgmentIds) {
                 if (!valid.contains(id)) {
                     invalidIds++;
-                    LOG.debug("I regret that I could not find: " + id + " in the index. " +
+                    LOG.info("I regret that I could not find: id:" + id + " in the index. " +
                             "I'll remove this from the judgments before scoring.");
                 } else {
                     validIds++;
@@ -327,13 +331,13 @@ public abstract class AbstractExperimentRunner extends AbstractCLI {
 
     }
 
-    private static void addValid(TermsQuery termsQuery, String idField,
+    private static void addValid(TermsQuery termsQuery, CustomHandler customHandler, String idField,
                                  SearchClient searchClient, int expected,
                                  Set<String> valid) {
         if (expected == 0) {
             return;
         }
-        QueryRequest q = new QueryRequest(termsQuery, null, idField);
+        QueryRequest q = new QueryRequest(termsQuery, customHandler, idField);
         q.addFieldsToRetrieve(idField);
         q.setNumResults(expected * 2);
         SearchResultSet searchResultSet;
@@ -343,12 +347,20 @@ public abstract class AbstractExperimentRunner extends AbstractCLI {
             throw new RuntimeException(e);
         }
         Set<String> localValid = new HashSet<>();
+        Set<String> terms = new HashSet<>(termsQuery.getTerms());
         for (int i = 0; i < searchResultSet.size(); i++) {
             String id = searchResultSet.getId(i);
             if (localValid.contains(id)) {
                 LOG.warn("Found non-unique key: " + id);
             }
+            if (!terms.contains(id)) {
+                LOG.error("Search returned an id I wasn't looking for: "
+                        + id +
+                        ". This is fatal and can mean that there's a default queryparser that" +
+                        " is not correctly parsing a terms query");
+            }
             valid.add(id);
+            localValid.add(id);
         }
 
     }
@@ -626,7 +638,7 @@ public abstract class AbstractExperimentRunner extends AbstractCLI {
         Map<String, Double> scoresB = experimentDB.getScores(querySet, experimentB, scorer);
         if (scoresA.size() != scoresB.size()) {
             //log
-            System.err.println("Different number of scores for " +
+            LOG.warn("Different number of scores for " +
                     experimentA + "(" + scoresA.size() +
                     ") vs. " + experimentB + "(" + scoresB.size() + ")");
         }

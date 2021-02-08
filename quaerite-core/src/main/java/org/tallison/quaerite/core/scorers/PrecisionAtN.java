@@ -35,7 +35,8 @@ public class PrecisionAtN extends AbstractJudgmentScorer {
     @Override
     public double score(Judgments judgments, SearchResultSet searchResultSet) {
         if (searchResultSet.size() == 0) {
-            return 0.0;
+            addScore(judgments.getQueryInfo(), ERROR_VALUE);
+            return ERROR_VALUE;
         }
         int hits = 0;
         List<String> ids = searchResultSet.getIds();

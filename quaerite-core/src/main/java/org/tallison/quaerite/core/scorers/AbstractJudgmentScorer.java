@@ -21,16 +21,13 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import org.tallison.quaerite.core.Judgments;
 import org.tallison.quaerite.core.SearchResultSet;
 
 public abstract class AbstractJudgmentScorer
         extends DistributionalScoreAggregator implements JudgmentScorer {
 
-    static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
-
+    public static double ERROR_VALUE = Double.MAX_VALUE;
     private boolean useForTrain = false;
     private boolean useForTest = false;
     private boolean exportPMatrix = false;

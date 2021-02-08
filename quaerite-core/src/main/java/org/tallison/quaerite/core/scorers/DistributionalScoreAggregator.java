@@ -17,6 +17,8 @@
  */
 package org.tallison.quaerite.core.scorers;
 
+import static org.tallison.quaerite.core.scorers.AbstractJudgmentScorer.ERROR_VALUE;
+
 import java.math.RoundingMode;
 import java.text.NumberFormat;
 import java.util.Arrays;
@@ -78,6 +80,11 @@ public abstract class DistributionalScoreAggregator extends Scorer {
         DoubleArray doubleArray = new ResizableDoubleArray();
 
         private void addValue(double d) {
+            if (d == ERROR_VALUE) {
+                //LOG?
+                //skipping value
+                return;
+            }
             summaryStatistics.addValue(d);
             doubleArray.addElement(d);
         }

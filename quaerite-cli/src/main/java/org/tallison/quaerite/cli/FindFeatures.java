@@ -91,6 +91,13 @@ public class FindFeatures extends AbstractCLI {
                                 "judgements have been loaded earlier!)").build()
         );
         OPTIONS.addOption(
+                Option.builder("m")
+                        .longOpt("minRelevance")
+                        .hasArg(true)
+                        .required(false)
+                        .desc("Ignore judgments with a score of <= this relevance score").build()
+        );
+        OPTIONS.addOption(
                 Option.builder("id")
                         .hasArg()
                         .required(false)
@@ -116,12 +123,16 @@ public class FindFeatures extends AbstractCLI {
                     OPTIONS);
             return;
         }
+        double minRelevance = -1.0;
+        if (commandLine.hasOption("m")) {
+            minRelevance = Double.parseDouble(commandLine.getOptionValue("m"));
+        }
         String searchServerUrl = commandLine.getOptionValue("s");
         Path dbDir = Paths.get(commandLine.getOptionValue("db"));
         Path judgmentsFile = getPath(commandLine, "j", false);
         ExperimentDB db = ExperimentDB.open(dbDir);
         if (judgmentsFile != null) {
-            QueryLoader.loadJudgments(db, judgmentsFile, true);
+            QueryLoader.loadJudgments(db, judgmentsFile, minRelevance, true);
         }
         SearchClient searchClient = SearchClientFactory.getClient(searchServerUrl);
         String[] fields = commandLine.getOptionValue("f").split(",");
@@ -181,6 +192,7 @@ public class FindFeatures extends AbstractCLI {
                 addAll(getFacets(f, qr, searchClient).getFacetCounts(), ret);
                 sb.setLength(0);
                 len = 0;
+                idsToFetch.clear();
             }
         }
         if (sb.length() > 0) {

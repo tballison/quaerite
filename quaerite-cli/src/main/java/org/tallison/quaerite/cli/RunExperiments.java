@@ -173,7 +173,6 @@ public class RunExperiments extends AbstractExperimentRunner {
         LOG.info("completed running and reporting experiments");
     }
 
-
     private void run(ExperimentSet experimentSet, ExperimentDB experimentDB,
                      String experimentName, boolean freshStart, boolean latest)
             throws SQLException, IOException, SearchClientException {

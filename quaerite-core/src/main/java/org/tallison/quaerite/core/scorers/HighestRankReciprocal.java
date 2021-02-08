@@ -16,6 +16,7 @@
  */
 package org.tallison.quaerite.core.scorers;
 
+import org.apache.log4j.Logger;
 import org.tallison.quaerite.core.Judgments;
 import org.tallison.quaerite.core.SearchResultSet;
 
@@ -23,6 +24,8 @@ import org.tallison.quaerite.core.SearchResultSet;
     Reciprocal of the highest single hit; {@link HighestRank#NOT_FOUND} otherwise.
  */
 public class HighestRankReciprocal extends HighestRank {
+
+    static Logger LOG = Logger.getLogger(HighestRankReciprocal.class);
 
     public HighestRankReciprocal(int atN) {
         super("highestRankReciprocal", atN);
@@ -32,6 +35,9 @@ public class HighestRankReciprocal extends HighestRank {
     public double score(Judgments judgments, SearchResultSet searchResultSet) {
         int rank = super._score(judgments, searchResultSet);
         if (rank == NOT_FOUND) {
+            LOG.warn("No judgments found (" + getName() +
+                    "): " + judgments.getQueryStrings());
+            addScore(judgments.getQueryInfo(), ERROR_VALUE);
             return NOT_FOUND;
         } else {
             double ret = (double)1 / rank;

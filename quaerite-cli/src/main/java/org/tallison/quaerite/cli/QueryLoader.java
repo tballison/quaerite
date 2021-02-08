@@ -63,6 +63,14 @@ class QueryLoader {
 
     public static void loadJudgments(ExperimentDB experimentDB, Path file,
                                      boolean freshStart) throws IOException, SQLException {
+        loadJudgments(experimentDB, file, -1.0, freshStart);
+    }
+
+    public static void loadJudgments(ExperimentDB experimentDB, Path file,
+                                     double minRelevance,
+                                     boolean freshStart) throws IOException, SQLException {
+
+
         if (freshStart) {
             experimentDB.clearJudgments();
         }
@@ -84,10 +92,10 @@ class QueryLoader {
                         .getHeaderMap().keySet());
                 if (hasQueryId) {
                     judgmentsMap = loadJudgmentsWithId(hasJudgments, hasQuerySet, hasCount,
-                            queryStringNames, records);
+                            queryStringNames, minRelevance, records);
                 } else {
                     judgmentsMap = loadJudmentsWithoutId(hasJudgments, hasQuerySet,
-                            hasCount, queryStringNames, records);
+                            hasCount, queryStringNames, minRelevance, records);
                 }
             }
         }
@@ -100,6 +108,7 @@ class QueryLoader {
                                                                 boolean hasQuerySet,
                                                                 boolean hasCount,
                                                                 Set<String> queryStringNames,
+                                                                double minRelevance,
                                                                 Iterable<CSVRecord> records) {
         //queryset, Map<queryInfo.getId, Judgments>
         Map<String, Map<QueryStrings, Judgments>> queries = new LinkedHashMap<>();
@@ -137,8 +146,9 @@ class QueryLoader {
                 String documentId = record.get(DOCUMENT_ID);
                 double relevanceScore =
                         Double.parseDouble(record.get(RELEVANCE));
-
-                judgments.addJudgment(documentId, relevanceScore);
+                if (minRelevance < 0.0 || relevanceScore >= minRelevance) {
+                    judgments.addJudgment(documentId, relevanceScore);
+                }
             }
         }
         Map<String, Judgments> ret = new HashMap<>();
@@ -153,7 +163,8 @@ class QueryLoader {
 
     private static Map<String, Judgments> loadJudgmentsWithId(
             boolean hasJudgments, boolean hasQuerySet, boolean hasCount,
-            Set<String> queryStringNames, Iterable<CSVRecord> records) throws SQLException {
+            Set<String> queryStringNames, double minRelevance,
+            Iterable<CSVRecord> records) throws SQLException {
 
         //queryId, judgments
         Map<String, Judgments> judgmentsMap = new HashMap<>();
@@ -182,8 +193,11 @@ class QueryLoader {
                 String documentId = record.get(DOCUMENT_ID);
                 double relevanceScore =
                         Double.parseDouble(record.get(RELEVANCE));
-                Judgments judgments = judgmentsMap.get(newQueryInfo.getQueryId());
-                judgments.addJudgment(documentId, relevanceScore);
+                if (minRelevance < 0.0 || relevanceScore >= minRelevance) {
+
+                    Judgments judgments = judgmentsMap.get(newQueryInfo.getQueryId());
+                    judgments.addJudgment(documentId, relevanceScore);
+                }
             }
         }
         return judgmentsMap;

@@ -88,7 +88,7 @@ public class ExpectedReciprocalRank extends AbstractJudgmentScorer {
         double max = maxScore != null ? maxScore : maxInTheseJudgments;
         
         if (max < 0) {
-            throw new IllegalArgumentException("maximum relevance grade must be > 0");
+            throw new IllegalArgumentException("maximum relevance grade must be >= 0");
         }
         double twoToTheMax = FastMath.pow(2, max);
         double p = 1.0;
@@ -97,7 +97,7 @@ public class ExpectedReciprocalRank extends AbstractJudgmentScorer {
         for (int i = 0; i < getAtN() && i < ids.size(); i++) {
             String id = ids.get(i);
             double grade = getGrade(judgments, id, max);
-            if (grade <= 0.0) {
+            if (grade < 0.0) {
                 continue;
             }
             int rank = i + 1;
