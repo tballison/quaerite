@@ -145,7 +145,9 @@ public class WeightableListFeatureFactory<T extends WeightableListFeature>
     public List<T> permute(int maxSize) {
         Set<T> collector = new HashSet<>();
         WeightableListFeature currFeatures = newInstance(getName());
-        recurse(0, 0, maxSize, currFeatures, collector);
+        for (int i = 0; i < features.size(); i++) {
+            recurse(i, 0, maxSize, currFeatures, collector);
+        }
         return new ArrayList<>(collector);
     }
 

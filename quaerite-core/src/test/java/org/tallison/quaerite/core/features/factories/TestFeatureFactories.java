@@ -27,7 +27,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.gson.Gson;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.tallison.quaerite.core.ExperimentFactory;
@@ -39,7 +38,6 @@ import org.tallison.quaerite.core.features.WeightableListFeature;
 
 
 public class TestFeatureFactories {
-    Gson gson = new Gson();
 
     @Test
     public void testSimpleQF() throws Exception {
@@ -79,7 +77,22 @@ public class TestFeatureFactories {
         }
 
         List<Feature> permutations = qf.permute(200);
-        assertEquals(14, permutations.size());
+        assertEquals(19, permutations.size());
+    }
+
+    @Test
+    public void testSimplerQF() throws Exception {
+        List<String> fields = new ArrayList<>();
+        fields.add("a");
+        fields.add("b");
+        fields.add("c");
+        fields.add("d");
+        List<Float> defaultWeights = new ArrayList<>();
+
+        WeightableListFeatureFactory qf = new WeightableListFeatureFactory<QF>(
+                "qf", QF.class, fields, defaultWeights, 1, 3);
+        List<WeightableListFeature> list = qf.permute(1000);
+        assertEquals(9, list.size());
     }
 
     @Test
