@@ -37,7 +37,8 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
 import org.apache.commons.math3.stat.descriptive.rank.Median;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.tallison.quaerite.connectors.SearchClientException;
 import org.tallison.quaerite.core.Experiment;
 import org.tallison.quaerite.core.ExperimentFactory;
@@ -57,7 +58,7 @@ import org.tallison.quaerite.db.TrainTestJudmentListPair;
 
 public class RunGA extends AbstractExperimentRunner {
 
-    static Logger LOG = Logger.getLogger(RunGA.class);
+    static Logger LOG = LogManager.getLogger(RunGA.class);
 
     static Options OPTIONS = new Options();
 

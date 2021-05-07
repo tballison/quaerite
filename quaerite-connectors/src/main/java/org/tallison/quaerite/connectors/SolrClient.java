@@ -43,7 +43,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.HttpClient;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.tallison.quaerite.core.FacetResult;
 import org.tallison.quaerite.core.SearchResultSet;
 import org.tallison.quaerite.core.StoredDocument;
@@ -76,7 +77,7 @@ public class SolrClient extends SearchClient {
         SYS_INTERNAL_FIELDS = Collections.unmodifiableSet(tmp);
     }
 
-    static Logger LOG = Logger.getLogger(SolrClient.class);
+    static Logger LOG = LogManager.getLogger(SolrClient.class);
 
     static final Gson GSON = new Gson();
     private static String DEFAULT_ID_FIELD = "id";

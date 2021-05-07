@@ -26,7 +26,8 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.apache.http.client.HttpClient;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.tallison.quaerite.core.StoredDocument;
 import org.tallison.quaerite.core.queries.LuceneQuery;
 import org.tallison.quaerite.core.queries.TermsQuery;
@@ -36,7 +37,7 @@ import org.tallison.quaerite.core.queries.TermsQuery;
  */
 public class Solr4Client extends SolrClient {
 
-    static Logger LOG = Logger.getLogger(Solr4Client.class);
+    static Logger LOG = LogManager.getLogger(Solr4Client.class);
 
     private final int minorVersion;
     /**

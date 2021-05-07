@@ -33,7 +33,8 @@ import java.util.regex.Matcher;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParserFactory;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -41,7 +42,7 @@ import org.xml.sax.helpers.DefaultHandler;
 
 public class ElevateScraper extends DefaultHandler {
 
-    static Logger LOG = Logger.getLogger(ElevateScraper.class);
+    static Logger LOG = LogManager.getLogger(ElevateScraper.class);
     private final Matcher idMatcher;
     private boolean inQuery = false;
     private String currentQuery = null;

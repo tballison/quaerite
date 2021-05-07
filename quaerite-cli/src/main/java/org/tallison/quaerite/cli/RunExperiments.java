@@ -31,7 +31,8 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.tallison.quaerite.connectors.SearchClientException;
 import org.tallison.quaerite.core.Experiment;
 import org.tallison.quaerite.core.ExperimentConfig;
@@ -42,7 +43,7 @@ public class RunExperiments extends AbstractExperimentRunner {
 
     public static String DEFAULT_ID_FIELD = "id";
 
-    static Logger LOG = Logger.getLogger(RunExperiments.class);
+    static Logger LOG = LogManager.getLogger(RunExperiments.class);
 
     static Options OPTIONS = new Options();
 

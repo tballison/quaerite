@@ -28,7 +28,8 @@ import java.util.List;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.tallison.quaerite.core.QueryInfo;
 import org.tallison.quaerite.core.SearchResultSet;
 import org.tallison.quaerite.core.StoredDocument;
@@ -42,7 +43,7 @@ import org.tallison.quaerite.core.scorers.Scorer;
 public class QueryRunnerDBClient implements Closeable {
 
     private static Gson GSON = new GsonBuilder().create();
-    static Logger LOG = Logger.getLogger(QueryRunnerDBClient.class);
+    static Logger LOG = LogManager.getLogger(QueryRunnerDBClient.class);
 
     private PreparedStatement insertScores;
     private PreparedStatement insertResults;

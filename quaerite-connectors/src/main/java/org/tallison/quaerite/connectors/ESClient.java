@@ -40,7 +40,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.HttpClient;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.tallison.quaerite.core.FacetResult;
 import org.tallison.quaerite.core.SearchResultSet;
 import org.tallison.quaerite.core.StoredDocument;
@@ -77,7 +78,7 @@ public class ESClient extends SearchClient {
     }
 
 
-    static Logger LOG = Logger.getLogger(ESClient.class);
+    static Logger LOG = LogManager.getLogger(ESClient.class);
 
     private final String url;//must include esbase and es collection; must end in /
     private final String esBase;//must end in /

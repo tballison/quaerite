@@ -51,7 +51,8 @@ import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.io.input.BOMInputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableLong;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.tallison.quaerite.connectors.SearchClient;
 import org.tallison.quaerite.connectors.SearchClientException;
 import org.tallison.quaerite.connectors.SearchClientFactory;
@@ -63,7 +64,7 @@ import org.tallison.quaerite.core.util.MapUtil;
 public class CompareAnalyzers {
 
     static Options OPTIONS = new Options();
-    static Logger LOG = Logger.getLogger(SearchClient.class);
+    static Logger LOG = LogManager.getLogger(SearchClient.class);
     private static int DEFAULT_NUM_THREADS = 10;
     private static int DEFAULT_MIN_SET_SIZE = 1;
     private static int DEFAULT_MIN_DF = 1;

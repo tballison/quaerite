@@ -52,7 +52,8 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.io.input.BOMInputStream;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.tallison.quaerite.connectors.QueryRequest;
 import org.tallison.quaerite.connectors.SearchClient;
 import org.tallison.quaerite.connectors.SearchClientFactory;
@@ -61,7 +62,7 @@ import org.tallison.quaerite.core.queries.TermQuery;
 import org.tallison.quaerite.core.util.MapUtil;
 
 public class ElevateQueryComparer {
-    static Logger LOG = Logger.getLogger(ElevateQueryComparer.class);
+    static Logger LOG = LogManager.getLogger(ElevateQueryComparer.class);
 
     static Options OPTIONS = new Options();
 

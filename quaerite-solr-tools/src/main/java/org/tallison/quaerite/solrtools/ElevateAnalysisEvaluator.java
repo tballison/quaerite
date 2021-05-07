@@ -41,7 +41,8 @@ import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.io.input.BOMInputStream;
 import org.apache.commons.lang3.mutable.MutableLong;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.tallison.quaerite.analysis.EquivalenceSet;
 import org.tallison.quaerite.connectors.SearchClient;
 import org.tallison.quaerite.connectors.SearchClientException;
@@ -50,7 +51,7 @@ import org.tallison.quaerite.core.util.MapUtil;
 import org.tallison.quaerite.core.util.StringUtil;
 
 public class ElevateAnalysisEvaluator {
-    static Logger LOG = Logger.getLogger(ElevateAnalysisEvaluator.class);
+    static Logger LOG = LogManager.getLogger(ElevateAnalysisEvaluator.class);
 
     static Options OPTIONS = new Options();
 

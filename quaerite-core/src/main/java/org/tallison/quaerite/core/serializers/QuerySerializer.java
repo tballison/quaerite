@@ -39,7 +39,8 @@ import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.tallison.quaerite.core.QueryStrings;
 import org.tallison.quaerite.core.features.BF;
 import org.tallison.quaerite.core.features.BQ;
@@ -92,7 +93,7 @@ import org.tallison.quaerite.core.util.MathUtil;
 public class QuerySerializer extends AbstractFeatureSerializer
         implements JsonSerializer<Query>, JsonDeserializer<Query> {
 
-    static Logger LOG = Logger.getLogger(QuerySerializer.class);
+    static Logger LOG = LogManager.getLogger(QuerySerializer.class);
 
     private static final Pattern PERCENT_MATCHER = Pattern.compile("(-?\\d+(\\.\\d+)?)%");
     private static final String DEFAULT_FIELD = "defaultField";
