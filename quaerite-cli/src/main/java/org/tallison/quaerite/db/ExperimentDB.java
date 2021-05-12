@@ -40,7 +40,8 @@ import java.util.Set;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.tallison.quaerite.core.Experiment;
 import org.tallison.quaerite.core.ExperimentConfig;
 import org.tallison.quaerite.core.ExperimentSet;
@@ -60,7 +61,7 @@ public class ExperimentDB implements Closeable {
 
     private static Gson GSON = new GsonBuilder().create();
 
-    static Logger LOG = Logger.getLogger(ExperimentDB.class);
+    static Logger LOG = LogManager.getLogger(ExperimentDB.class);
     final Connection connection;
     private final PreparedStatement selectExperiments;
     private final PreparedStatement selectOneExperiment;

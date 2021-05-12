@@ -36,14 +36,15 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.tallison.quaerite.connectors.SearchClient;
 import org.tallison.quaerite.connectors.SearchClientException;
 import org.tallison.quaerite.connectors.SearchClientFactory;
 import org.xml.sax.SAXException;
 
 public class ElevateElevateComparer {
-    static Logger LOG = Logger.getLogger(ElevateAnalysisEvaluator.class);
+    static Logger LOG = LogManager.getLogger(ElevateAnalysisEvaluator.class);
 
     static Options OPTIONS = new Options();
 

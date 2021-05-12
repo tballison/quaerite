@@ -23,7 +23,8 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.tallison.quaerite.core.queries.Query;
 
 /**
@@ -33,7 +34,7 @@ import org.tallison.quaerite.core.queries.Query;
  * to the queue to signal to the consumers to end.</p>
  */
 public abstract class IdGrabber implements Callable<Integer> {
-    static Logger LOG = Logger.getLogger(IdGrabber.class);
+    static Logger LOG = LogManager.getLogger(IdGrabber.class);
 
     protected final String idField;
     protected final ArrayBlockingQueue<Set<String>> ids;

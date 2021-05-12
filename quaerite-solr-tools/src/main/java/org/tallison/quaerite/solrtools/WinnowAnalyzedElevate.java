@@ -43,7 +43,8 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.tallison.quaerite.connectors.SearchClient;
 import org.tallison.quaerite.connectors.SearchClientException;
 import org.tallison.quaerite.connectors.SearchClientFactory;
@@ -54,7 +55,7 @@ import org.tallison.quaerite.core.util.StringUtil;
  * become duplicates after analysis via a given field.
  */
 public class WinnowAnalyzedElevate {
-    static Logger LOG = Logger.getLogger(WinnowAnalyzedElevate.class);
+    static Logger LOG = LogManager.getLogger(WinnowAnalyzedElevate.class);
 
     static Options OPTIONS = new Options();
 

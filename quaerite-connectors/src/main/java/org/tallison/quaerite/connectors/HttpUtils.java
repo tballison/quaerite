@@ -53,11 +53,12 @@ import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.ssl.SSLContexts;
 import org.apache.http.util.EntityUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class HttpUtils {
 
-    static Logger LOG = Logger.getLogger(HttpUtils.class);
+    static Logger LOG = LogManager.getLogger(HttpUtils.class);
 
     public static byte[] get(HttpClient httpClient, String url) throws SearchClientException {
         //overly simplistic...need to add proxy, etc., but good enough for now

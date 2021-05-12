@@ -19,7 +19,8 @@ package org.tallison.quaerite.core.scorers;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.tallison.quaerite.core.Judgments;
 import org.tallison.quaerite.core.SearchResultSet;
 import org.tallison.quaerite.core.StoredDocument;
@@ -27,7 +28,7 @@ import org.tallison.quaerite.core.StoredDocument;
 
 public class NDCG extends DiscountedCumulativeGain2002 {
 
-    static Logger LOG = Logger.getLogger(NDCG.class);
+    static Logger LOG = LogManager.getLogger(NDCG.class);
 
     public NDCG(int atN) {
         super("ndcg", atN);

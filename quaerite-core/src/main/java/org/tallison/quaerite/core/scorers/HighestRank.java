@@ -18,7 +18,8 @@ package org.tallison.quaerite.core.scorers;
 
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.tallison.quaerite.core.Judgments;
 import org.tallison.quaerite.core.SearchResultSet;
 
@@ -28,7 +29,7 @@ import org.tallison.quaerite.core.SearchResultSet;
 public class HighestRank extends AbstractJudgmentScorer {
     public final static int NOT_FOUND = -1;
 
-    static Logger LOG = Logger.getLogger(HighestRank.class);
+    static Logger LOG = LogManager.getLogger(HighestRank.class);
 
     public HighestRank(int atN) {
         super("highestRank", atN);

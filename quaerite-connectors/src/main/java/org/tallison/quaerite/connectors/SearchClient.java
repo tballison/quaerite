@@ -40,7 +40,8 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.tallison.quaerite.core.ExperimentConfig;
 import org.tallison.quaerite.core.FacetResult;
 import org.tallison.quaerite.core.SearchResultSet;
@@ -64,7 +65,7 @@ public abstract class SearchClient implements Closeable {
     public abstract FacetResult facet(QueryRequest query)
             throws SearchClientException, IOException;
 
-    static Logger LOG = Logger.getLogger(SearchClient.class);
+    static Logger LOG = LogManager.getLogger(SearchClient.class);
 
     private final HttpClient httpClient;
 

@@ -24,7 +24,8 @@ import java.nio.file.Path;
 import java.sql.SQLException;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.tallison.quaerite.core.Experiment;
 import org.tallison.quaerite.core.ExperimentSet;
 import org.tallison.quaerite.core.scorers.Scorer;
@@ -32,7 +33,7 @@ import org.tallison.quaerite.db.ExperimentDB;
 
 public abstract class AbstractCLI {
 
-    static Logger LOG = Logger.getLogger(AbstractCLI.class);
+    static Logger LOG = LogManager.getLogger(AbstractCLI.class);
 
     static ExperimentSet addExperiments(ExperimentDB experimentDB,
                                         Path experimentsJson, boolean merge,

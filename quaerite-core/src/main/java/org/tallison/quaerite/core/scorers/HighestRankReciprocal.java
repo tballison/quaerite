@@ -16,7 +16,8 @@
  */
 package org.tallison.quaerite.core.scorers;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.tallison.quaerite.core.Judgments;
 import org.tallison.quaerite.core.SearchResultSet;
 
@@ -25,7 +26,7 @@ import org.tallison.quaerite.core.SearchResultSet;
  */
 public class HighestRankReciprocal extends HighestRank {
 
-    static Logger LOG = Logger.getLogger(HighestRankReciprocal.class);
+    static Logger LOG = LogManager.getLogger(HighestRankReciprocal.class);
 
     public HighestRankReciprocal(int atN) {
         super("highestRankReciprocal", atN);
